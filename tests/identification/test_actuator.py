@@ -9,9 +9,9 @@ from bam.model import load_model_from_dict
 from bam.simulate import Simulator
 from bam.testbench import Pendulum as UpstreamPendulum
 
-from motor_identification.devices.robstride.models import MotorSpec
-from motor_identification.identification.bam.actuator import register
-from motor_identification.rigs.pendulum import Pendulum
+from motorfit.devices.robstride.models import MotorSpec
+from motorfit.identification.bam.actuator import register
+from motorfit.rigs.pendulum import Pendulum
 
 
 def motor_spec(name):

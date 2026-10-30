@@ -6,9 +6,9 @@
 
 <p align="center">
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/Version-0.1.0-607D8B?style=flat-square&amp;labelColor=334155" alt="Version 0.1.0"></a>
-  <a href="docs/environments.md"><img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&amp;labelColor=334155&amp;logo=python&amp;logoColor=white" alt="Python 3.12"></a>
+  <a href="https://motorfit.github.io/reference/backends.html"><img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&amp;labelColor=334155&amp;logo=python&amp;logoColor=white" alt="Python 3.12"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-607D8B?style=flat-square&amp;labelColor=334155" alt="License: Apache-2.0"></a>
-  <a href="docs/acquisition.md"><img src="https://img.shields.io/badge/SocketCAN-Linux-607D8B?style=flat-square&amp;labelColor=334155&amp;logo=linux&amp;logoColor=white" alt="SocketCAN acquisition on Linux"></a>
+  <a href="https://motorfit.github.io/guide/acquisition.html"><img src="https://img.shields.io/badge/SocketCAN-Linux-607D8B?style=flat-square&amp;labelColor=334155&amp;logo=linux&amp;logoColor=white" alt="SocketCAN acquisition on Linux"></a>
 </p>
 
 <p align="center">
@@ -41,7 +41,7 @@ git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
 uv run --frozen motorfit demo \
-  --dataset examples/offline/manifest.json --output outputs/demo
+  --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
 示例使用冻结模型检验三条完整记录，将对照图、误差指标和预测轨迹写入 `outputs/demo/`。当前仓库为私有，克隆需要访问权限。MotorFit 尚未发布，版本保持为 0.1.0。
@@ -51,12 +51,12 @@ uv run --frozen motorfit demo \
 
 ```bash
 uv run --frozen motorfit process \
-  --raw examples/offline/raw --out outputs/processed --dt 0.01
+  --raw tests/fixtures/offline/raw --out outputs/processed --dt 0.01
 uv run --frozen motorfit fit \
   --logdir outputs/processed --model m1 --trials 20 --output outputs/demo-fit.json
 ```
 
-这个小规模拟合用于演示接口，不复现正式实验的模型选型。训练、验证与评估流程见[辨识指南](docs/bam-identification.md)。
+这个小规模拟合用于演示接口，不复现正式实验的模型选型。训练、验证与评估流程见[辨识指南](https://motorfit.github.io/guide/identification.html)。
 
 </details>
 
@@ -66,11 +66,11 @@ uv run --frozen motorfit fit \
 ```bash
 uv sync --frozen --extra simulation
 uv run --frozen --extra simulation motorfit replay \
-  --dataset examples/offline/manifest.json --engine mujoco \
+  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
   --dt 0.002 --output outputs/mujoco
 ```
 
-Newton 与 mjlab 的安装见[可选环境](docs/environments.md)，支持的模型和回放设置见[验证指南](docs/validation.md)。
+Newton 与 mjlab 的安装见[可选环境](https://motorfit.github.io/reference/backends.html)，支持的模型和回放设置见[验证指南](https://motorfit.github.io/guide/validation.html)。
 
 </details>
 
@@ -86,12 +86,12 @@ Newton 与 mjlab 的安装见[可选环境](docs/environments.md)，支持的模
 
 ## 文档
 
-- **[采集自己的电机](docs/your-motor.md)** — 选择型号、测量夹具、配置设备并[采集数据](docs/acquisition.md)。
-- **[辨识与评估](docs/workflow.md)** — 整理记录、拟合候选模型，在独立数据上评估。
-- **[复现 RS05 实验](docs/case-studies/rs05.md)** — 111 条记录、三档负载、三个物理仿真后端。Git 包含三条完整示例，全部数据与视频[单独保存](docs/case-studies/rs05.md#what-to-reproduce)。
-- **[扩展 MotorFit](docs/architecture.md)** — 了解驱动、控制器、夹具和数据集接口。
+- **[采集自己的电机](https://motorfit.github.io/guide/configuration.html)** — 选择型号、测量夹具、配置设备并[采集数据](https://motorfit.github.io/guide/acquisition.html)。
+- **[辨识与评估](https://motorfit.github.io/getting-started/workflow.html)** — 整理记录、拟合候选模型，在独立数据上评估。
+- **[复现 RS05 实验](https://motorfit.github.io/case-studies/rs05.html)** — 111 条记录、三档负载、三个物理仿真后端。Git 包含三条完整示例，全部数据与视频[单独保存](https://motorfit.github.io/case-studies/rs05.html#what-to-reproduce)。
+- **[扩展 MotorFit](https://motorfit.github.io/development/architecture.html)** — 了解驱动、控制器、夹具和数据集接口。
 
-全部指南见[文档索引](docs/index.md)；文件存放与 Git 跟踪规则见[仓库规范](docs/repository.md)。
+全部指南见[文档索引](https://motorfit.github.io/index.html)；文件存放与 Git 跟踪规则见[仓库规范](https://motorfit.github.io/development/contributing.html)。
 
 ## Coding agent 使用
 

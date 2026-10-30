@@ -23,6 +23,7 @@ extensions = [
     "sphinx.ext.mathjax",
     "sphinx.ext.githubpages",
     "sphinx_copybutton",
+    "sphinx_reredirects",
 ]
 myst_enable_extensions = ["colon_fence", "dollarmath", "amsmath", "deflist"]
 myst_heading_anchors = 4
@@ -50,3 +51,23 @@ html_theme_options = {
 html_context = {"default_mode": "light"}
 copybutton_prompt_text = r"\$ |>>> |\.\.\. "
 copybutton_prompt_is_regexp = True
+
+# Compatibility redirects for the original handbook URLs.
+redirects = {
+    "quickstart": "getting-started/quickstart.html",
+    "workflow": "getting-started/workflow.html",
+    "your-motor": "guide/configuration.html",
+    "acquisition": "guide/acquisition.html",
+    "effort-motors": "guide/effort-control.html",
+    "bam-identification": "guide/identification.html",
+    "validation": "guide/validation.html",
+    "motors": "reference/motors.html",
+    "trajectories": "reference/trajectories.html",
+    "environments": "reference/backends.html",
+    "protocol-references": "reference/protocols.html",
+    "architecture": "development/architecture.html",
+    "repository": "development/contributing.html",
+    "documentation": "development/contributing.html",
+    "fixture-masses": "case-studies/rs05-fixture.html",
+    "limitations": "case-studies/rs05-findings.html",
+}

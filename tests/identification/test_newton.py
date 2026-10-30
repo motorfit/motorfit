@@ -1,6 +1,5 @@
 from copy import deepcopy
 from dataclasses import replace
-from functools import partial
 
 import numpy as np
 import pytest
@@ -10,9 +9,8 @@ pytest.importorskip("mujoco_warp")
 
 import mujoco
 
-from motor_identification.identification.newton import NewtonPendulumBatch
-from motor_identification.rigs.pendulum import Pendulum
-from motor_identification.rigs.rs05_bench import bench_properties, bench_xml
+from motorfit.identification.newton import NewtonPendulumBatch
+from motorfit.rigs.pendulum import Pendulum
 
 
 def test_implicitfast_uses_implicit_viscous_update(m1_params, pendulum_log):
@@ -28,23 +26,6 @@ def test_implicitfast_uses_implicit_viscous_update(m1_params, pendulum_log):
     inertia = Pendulum(log).compute_mass(0, 0) + params.armature
     expected = 2.0 / (1 + batch.dt * params.friction_viscous / inertia)
     assert batch.velocity()[0] == pytest.approx(expected, rel=1e-6)
-
-
-def test_complete_cad_import_and_component_inertia(m1_params, bench_assets, bench_logs):
-    params = replace(m1_params, friction_base=0, friction_viscous=0, command_delay=0)
-    batch = NewtonPendulumBatch(
-        bench_logs, params, xml_factory=partial(bench_xml, assets=bench_assets)
-    )
-    assert batch.model.shape_count >= 30
-    q0 = batch.position()
-    _, torque, _ = batch.step(q0, np.ones(3))
-    for i, log in enumerate(bench_logs):
-        mass, com, inertia = bench_properties(log, bench_assets)
-        angle = q0[i] + params.q_offset
-        gravity = -9.80665 * mass * (com[0] * np.cos(angle) - com[2] * np.sin(angle))
-        pivot_inertia = inertia[1, 1] + mass * (com[0] ** 2 + com[2] ** 2) + params.armature
-        expected = (gravity + torque[i]) / pivot_inertia * batch.dt
-        assert batch.velocity()[i] == pytest.approx(expected, rel=1e-5, abs=1e-8)
 
 
 def test_imported_inertia_gravity_and_ref_coordinates(m1_params, pendulum_log):

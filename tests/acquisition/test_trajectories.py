@@ -3,18 +3,8 @@
 import math
 
 import pytest
-from bam.trajectory import trajectories
 
-from motor_identification.acquisition.trajectories import Trajectory
-
-
-@pytest.mark.parametrize("name", ["sin_time_square", "sin_sin", "lift_and_drop", "up_and_down"])
-def test_native_bam_trajectory(name):
-    local = Trajectory({"trajectory": name})
-    upstream = trajectories[name]
-    assert local.duration == upstream.duration == 6.0
-    for t in (0.0, 0.5, 1.99, 2.0, 3.0, 5.99):
-        assert local(t) == pytest.approx(upstream(t))
+from motorfit.acquisition.trajectories import Trajectory
 
 
 def test_soccer_sweep_has_its_own_name():

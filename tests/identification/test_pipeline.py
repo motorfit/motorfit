@@ -11,9 +11,9 @@ import optuna
 import pytest
 from bam.actuators import actuators
 
-from motor_identification.devices.registry import command_value
-from motor_identification.devices.robstride.models import MotorSpec
-from motor_identification.identification.bam import bam_tool, load_model, process
+from motorfit.devices.registry import command_value
+from motorfit.devices.robstride.models import MotorSpec
+from motorfit.identification.bam import bam_tool, load_model, process
 
 
 @pytest.mark.parametrize("profile", ["robstride/rs06", "damiao/4310"])

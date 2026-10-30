@@ -10,9 +10,9 @@ import mujoco
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from motor_identification.dataset import Dataset
-from motor_identification.identification.mujoco import M1Parameters
-from motor_identification.rigs.rs05_bench import bench_xml
+from motorfit.dataset import Dataset
+from motorfit.identification.mujoco import M1Parameters
+from motorfit.rigs.rs05_bench import bench_xml
 
 WIDTH, HEIGHT, FPS = 1920, 1080, 30
 COLUMN_W = WIDTH // 3

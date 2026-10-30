@@ -5,7 +5,7 @@ description: Evaluate a fixed MotorFit model against recorded motion and, when s
 
 # Validate a fixed model
 
-Run commands from the MotorFit repository root. Read [validation.md](../../../docs/validation.md) and the relevant backend section of [environments.md](../../../docs/environments.md). Establish the model, evaluation recordings, intended comparison and output location before running.
+Run commands from the MotorFit repository root. Read [validation.md](../../../docs/guide/validation.md) and the relevant backend section of [Backends](../../../docs/reference/backends.md). Establish the model, evaluation recordings, intended comparison and output location before running.
 
 ## Choose the validation path
 
@@ -28,10 +28,10 @@ Here `--output` names the model to read, and `--eval` prevents fitting. Preserve
 For the bundled example with MuJoCo, use a new output directory:
 
 ```bash
-uv run --frozen motorfit verify --dataset examples/offline/manifest.json
+uv run --frozen motorfit verify --dataset tests/fixtures/offline/manifest.json
 uv sync --frozen --extra simulation
 uv run --frozen --extra simulation motorfit replay \
-  --dataset examples/offline/manifest.json --engine mujoco \
+  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
   --dt 0.002 --output outputs/validation-mujoco
 ```
 
@@ -39,7 +39,7 @@ Replace the manifest for a compatible prepared study. Choose a positive physics 
 
 Without `--scene-assets`, replay uses the identification-equivalent point-load fixture. The supplied CAD assets describe the RS05 bench; use them only for that assembly. `--fixture-model identified_point` retains its CAD appearance with identification-equivalent inertia. Changes to timestep, solver, friction or fixture assumptions define a new comparison and should be reported. Use `--ablations` only when requested or needed to diagnose differences; those runs use training data.
 
-The feedback audit and release-event commands use the RS05 reference capture conventions. Follow [validation.md](../../../docs/validation.md) for those investigations; their decoding and timing assumptions do not automatically apply to another motor or wire format.
+The feedback audit and release-event commands use the RS05 reference capture conventions. Follow [validation.md](../../../docs/guide/validation.md) for those investigations; their decoding and timing assumptions do not automatically apply to another motor or wire format.
 
 ## Completion
 
@@ -47,7 +47,7 @@ Inspect replay `metrics.json`, `metrics.csv`, saved trajectories and protocol me
 
 ## Maintenance sources
 
-- [Dataset loader](../../../src/motor_identification/dataset.py) and [verification](../../../src/motor_identification/validation/verify.py): manifests and integrity checks.
-- [Replay entry point](../../../src/motor_identification/identification/validate_simulation.py), [M1 adapter](../../../src/motor_identification/identification/mujoco.py) and [BAM runner](../../../src/motor_identification/identification/bam/runner.py): supported models, metrics and runtime options.
+- [Dataset loader](../../../src/motorfit/dataset.py) and [verification](../../../src/motorfit/validation/verify.py): manifests and integrity checks.
+- [Replay entry point](../../../src/motorfit/identification/validate_simulation.py), [M1 adapter](../../../src/motorfit/identification/mujoco.py) and [BAM runner](../../../src/motorfit/identification/bam/runner.py): supported models, metrics and runtime options.
 
 Recheck these sources when model support, backend behavior or result schemas change.

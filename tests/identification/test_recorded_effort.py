@@ -6,9 +6,9 @@ from bam.actuators import actuators
 from bam.model import models
 from bam.simulate import Simulator
 
-from motor_identification.devices.spec import MotorSpec
-from motor_identification.identification.bam.actuator import register
-from motor_identification.identification.bam.resample import resample_effort
+from motorfit.devices.spec import MotorSpec
+from motorfit.identification.bam.actuator import register
+from motorfit.identification.bam.resample import resample_effort
 
 
 def model_and_log():

@@ -5,7 +5,7 @@ description: Process recorded motor data, fit BAM M1–M6 candidates and select 
 
 # Identify motor dynamics
 
-Run commands from the MotorFit repository root. Read [the workflow](../../../docs/workflow.md) and [BAM identification](../../../docs/bam-identification.md). For MyActuator, HighTorque or Hexfellow, also read the input-timing section of [effort-motors.md](../../../docs/effort-motors.md).
+Run commands from the MotorFit repository root. Read [the workflow](../../../docs/getting-started/workflow.md) and [BAM identification](../../../docs/guide/identification.md). For MyActuator, HighTorque or Hexfellow, also read the input-timing section of [Effort control](../../../docs/guide/effort-control.md).
 
 ## Establish the dataset
 
@@ -40,13 +40,13 @@ Use `motorfit plot --logdir <processed-split> --sim --params <candidate.json>` f
 
 ## Freeze the result
 
-Freeze the selected parameter file and its complete `motor_spec`, dataset hashes, controller/fixture definitions and selection evidence before evaluating the final split with `fit --eval`. Load saved models through `motor_identification.identification.bam.load_model(path)` so current TOML edits cannot reinterpret them. Never direct a new fit at a frozen model, including `examples/offline/model.json`.
+Freeze the selected parameter file and its complete `motor_spec`, dataset hashes, controller/fixture definitions and selection evidence before evaluating the final split with `fit --eval`. Load saved models through `motorfit.identification.bam.load_model(path)` so current TOML edits cannot reinterpret them. Never direct a new fit at a frozen model, including `tests/fixtures/offline/model.json`.
 
 Report the candidate comparison, selected model path, held-out score and limitations of the tested conditions. The three bundled example recordings and a short fit demonstrate the API; they do not repeat formal RS05 model selection. Physical replay support is narrower than BAM fitting support; use [motorfit-validate](../motorfit-validate/SKILL.md) for a fixed model.
 
 ## Maintenance sources
 
-- [BAM runner](../../../src/motor_identification/identification/bam/runner.py), [fitting](../../../src/motor_identification/identification/bam/fitting.py) and [resampling](../../../src/motor_identification/identification/bam/resample.py): snapshot checks, scoring and input timing.
+- [BAM runner](../../../src/motorfit/identification/bam/runner.py), [fitting](../../../src/motorfit/identification/bam/fitting.py) and [resampling](../../../src/motorfit/identification/bam/resample.py): snapshot checks, scoring and input timing.
 - [Pinned BAM CLI](../../../third_party/bam/bam/fit.py): optimization flags and model selection.
 
 Recheck these sources when fitting flags, supported controllers or snapshot formats change.

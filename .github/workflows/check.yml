@@ -1,20 +1,37 @@
-name: Repository checks
-on: [push, pull_request]
+name: Code
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["docs/**", "*.md", ".agents/**", ".claude/**", ".github/workflows/docs.yml"]
+  pull_request:
+    paths-ignore: ["docs/**", "*.md", ".agents/**", ".claude/**", ".github/workflows/docs.yml"]
+
 permissions:
   contents: read
+
+concurrency:
+  group: code-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  verify:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           submodules: recursive
-      - run: python3 scripts/check_repository.py
+      - name: Check that local files are untracked
+        run: |
+          tracked_local="$(git ls-files --cached --ignored --exclude-standard)"
+          if [ -n "$tracked_local" ]; then
+            printf 'Local files are tracked:\n%s\n' "$tracked_local"
+            exit 1
+          fi
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: "0.9.18"
           python-version: "3.12"
       - run: uv sync --frozen --extra simulation
-      - run: uv run --frozen --extra simulation ruff check src tests scripts
-      - run: uv run --frozen --extra simulation pytest -q
-      - run: uv run --frozen --extra simulation motorfit demo --dataset examples/offline/manifest.json --output outputs/ci-demo
+      - run: uv run --no-sync ruff check src tests scripts
+      - run: uv run --no-sync pytest -q

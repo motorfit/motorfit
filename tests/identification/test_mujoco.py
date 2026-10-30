@@ -8,12 +8,12 @@ pytest.importorskip("mujoco")
 import mujoco
 from bam.simulate import fractional_delay_shift
 
-from motor_identification.identification.mujoco import (
+from motorfit.identification.mujoco import (
     FractionalDelay,
     M1Parameters,
     PendulumReplay,
 )
-from motor_identification.rigs.pendulum import Pendulum
+from motorfit.rigs.pendulum import Pendulum
 
 
 @pytest.fixture
@@ -126,8 +126,8 @@ def test_damiao_snapshot_replay_preserves_encoded_controller(tmp_path, log):
     import tomllib
     from pathlib import Path
 
-    from motor_identification.devices.registry import command_value
-    from motor_identification.devices.spec import MotorSpec
+    from motorfit.devices.registry import command_value
+    from motorfit.devices.spec import MotorSpec
 
     root = Path(__file__).resolve().parents[2]
     spec = MotorSpec.from_dict(

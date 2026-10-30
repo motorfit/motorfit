@@ -8,12 +8,12 @@ from pathlib import Path
 import can
 import pytest
 
-from motor_identification.acquisition.recorder import record
-from motor_identification.config import load_setup
-from motor_identification.devices.damiao.diagnostics import inspect
-from motor_identification.devices.damiao.motor import Motor
-from motor_identification.devices.damiao.protocol import decode_feedback, encode_command, quantize
-from motor_identification.devices.spec import MotorSpec
+from motorfit.acquisition.recorder import record
+from motorfit.config import load_setup
+from motorfit.devices.damiao.diagnostics import inspect
+from motorfit.devices.damiao.motor import Motor
+from motorfit.devices.damiao.protocol import decode_feedback, encode_command, quantize
+from motorfit.devices.spec import MotorSpec
 
 ROOT = Path(__file__).resolve().parents[2]
 

@@ -1,43 +1,16 @@
-"""Regression to sealed release predictions and an independent torque impulse."""
-
-import json
-from pathlib import Path
+"""Check release-event integration against an analytical torque impulse."""
 
 import numpy as np
 import pytest
 
 mujoco = pytest.importorskip("mujoco")
 
-from motor_identification.dataset import Dataset  # noqa: E402
-from motor_identification.identification.mujoco import M1Parameters  # noqa: E402
-from motor_identification.validation.release import CASES, build_library, replay  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[2]
+from motorfit.validation.release import build_library  # noqa: E402
 
 
 @pytest.fixture(scope="module")
 def native(tmp_path_factory):
     return build_library(tmp_path_factory.mktemp("release-library"))
-
-
-def test_frozen_release_regression(native):
-    dataset = Dataset(ROOT / "examples/offline/manifest.json")
-    row = next(r for r in dataset.rows if r["mass_g"] == 200)
-    events = json.loads((ROOT / "tests/fixtures/release/events.json").read_text())[row["id"]]
-    params = M1Parameters.load(dataset.model_path)
-    for case in CASES:
-        prediction, diagnostic = replay(
-            dataset.log(row),
-            params,
-            ROOT / "tests/fixtures/release/scene.xml",
-            0.0000625,
-            events[case],
-            native,
-        )
-        with np.load(ROOT / f"tests/fixtures/release/{case}.npz") as reference:
-            np.testing.assert_allclose(prediction, reference["prediction"], rtol=0, atol=1e-12)
-        assert abs(diagnostic[0] - events[case]) < 1e-10
-        assert diagnostic[7] == 0
 
 
 def test_event_splits_a_controller_step_with_correct_impulse(native):

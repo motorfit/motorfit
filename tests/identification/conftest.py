@@ -2,42 +2,9 @@ import pytest
 
 
 @pytest.fixture
-def bench_assets():
-    import os
-    from pathlib import Path
-
-    default = Path(__file__).resolve().parents[2] / "data/rs05/assets/bench"
-    assets = Path(os.environ.get("MOTORFIT_RS05_ASSETS", default)).resolve()
-    if not (assets / "manifest.json").is_file():
-        pytest.skip("RS05 CAD archive absent; provide data/rs05/assets/bench or MOTORFIT_RS05_ASSETS")
-    return assets
-
-
-@pytest.fixture
-def bench_logs():
-    import math
-    import tomllib
-    from pathlib import Path
-
-    root = Path(__file__).resolve().parents[2]
-    logs = []
-    for grams in (100, 200, 500):
-        log = tomllib.loads((root / f"configs/fixtures/pendulum_{grams}g_200mm.toml").read_text())
-        log.update(kp=20, kd=0.8, dt=0.01)
-        log["entries"] = [
-            dict(
-                position=0.1, speed=0, goal_position=0.3 * math.sin(k * 0.04), torque_enable=k < 150
-            )
-            for k in range(200)
-        ]
-        logs.append(log)
-    return logs
-
-
-@pytest.fixture
 def m1_params():
     pytest.importorskip("mujoco")
-    from motor_identification.identification.mujoco import M1Parameters
+    from motorfit.identification.mujoco import M1Parameters
 
     return M1Parameters(
         1.1639233433530467,

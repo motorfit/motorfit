@@ -6,7 +6,7 @@ from pathlib import Path
 import can
 import pytest
 
-from motor_identification.devices.robstride import (
+from motorfit.devices.robstride import (
     Motor,
     MotorSpec,
     decode_feedback,
@@ -380,8 +380,8 @@ def test_drain_logging_error_does_not_prevent_stop_or_close(monkeypatch, spec):
 
 
 def test_inspection_is_read_only_and_preserves_failures(monkeypatch, tmp_path):
-    from motor_identification.config import load_setup
-    from motor_identification.devices.robstride.diagnostics import REGISTERS, inspect
+    from motorfit.config import load_setup
+    from motorfit.devices.robstride.diagnostics import REGISTERS, inspect
 
     config = load_setup(MODEL_DIR.parents[1] / "setups/rs05_pendulum.toml")
     replies = []

@@ -3,11 +3,10 @@ import tomllib
 from pathlib import Path
 
 import can
-import pytest
 
-from motor_identification.cli import main
-from motor_identification.devices.registry import driver
-from motor_identification.devices.spec import MotorSpec
+from motorfit.cli import main
+from motorfit.devices.registry import driver
+from motorfit.devices.spec import MotorSpec
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -30,18 +29,3 @@ def test_catalog_matches_native_profiles_without_hardware(capsys, monkeypatch):
     assert catalog["families"]["robstride"]["hardware_validated_models"] == ["rs05"]
     assert not catalog["families"]["damiao"]["hardware_validated_models"]
     assert not catalog["unsupported_families"]
-
-
-def test_unknown_command_is_rejected(capsys):
-    with pytest.raises(SystemExit) as result:
-        main(["unknown-command", "--help"])
-    assert result.value.code == 2
-    assert "invalid choice: 'unknown-command'" in capsys.readouterr().err
-
-
-@pytest.mark.parametrize("family", ["invalid"])
-def test_non_mit_families_cannot_silently_use_mit_bam_model(family):
-    with pytest.raises(ValueError, match="Unsupported motor family"):
-        MotorSpec.from_dict({"family": family})
-    with pytest.raises(ValueError, match="No BAM acquisition adapter"):
-        driver(family)

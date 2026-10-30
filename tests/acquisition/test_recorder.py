@@ -5,11 +5,11 @@ from types import SimpleNamespace
 import can
 import pytest
 
-import motor_identification.acquisition.recorder as recorder
-from motor_identification.acquisition.trajectories import Trajectory
-from motor_identification.devices.robstride.models import MotorSpec
-from motor_identification.devices.robstride.motor import Motor
-from motor_identification.devices.robstride.protocol import quantize
+import motorfit.acquisition.recorder as recorder
+from motorfit.acquisition.trajectories import Trajectory
+from motorfit.devices.robstride.models import MotorSpec
+from motorfit.devices.robstride.motor import Motor
+from motorfit.devices.robstride.protocol import quantize
 
 
 class Clock:

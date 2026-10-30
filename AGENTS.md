@@ -1,15 +1,15 @@
-# Repository working rules
+# Working on MotorFit
 
-- Read `docs/repository.md` before changing the layout or Git tracking.
-- Store complete local experiments under `data/<study>/`; use `outputs/` for temporary runs.
-  Keep device coordinates in `configs/local/`. These directories are ignored in full.
-- The offline example, release regression fixtures and four published documentation images
-  are the only approved data/artifact exceptions. Do not add experiment materials to other
-  source directories or widen the allowlist without an explicit fixture need.
-- Stage named paths, inspect `git diff --cached --stat`, and run
-  `python3 scripts/check_repository.py` before committing; CI repeats the check.
-- Build docs with `uv run --frozen --only-group docs sphinx-build -W --keep-going -b html -d outputs/docs-doctrees docs outputs/docs`.
-  Keep Sphinx/MyST sources in `docs/` and generated files under ignored `outputs/`.
-- Keep the unreleased package version at `0.1.0`. Keep English and Chinese README commands
-  consistent. Shared agent skills live directly in `.agents/skills/`; `.claude/skills` is a relative
-  symlink to that directory. Do not add a root-level `skills/` directory.
+- Python source and imports use `motorfit`; the package lives in `src/motorfit/`.
+- Keep experiments under ignored `data/<study>/`, temporary output under `outputs/`,
+  and device coordinates under `configs/local/`. Never commit environments or generated files.
+- Reusable test data belongs in `tests/fixtures/`. Preserve the bundled offline recordings,
+  hashes and frozen predictions when changing paths or packaging.
+- Use the single project environment `.venv`: `uv sync --frozen --extra simulation --group docs`.
+  Run tools with `uv run --no-sync` after syncing. Optional backend environments are external.
+- Check changed Python with Ruff and run the relevant tests; run the full suite after package
+  or dependency changes. Build changed docs with Sphinx warnings treated as errors.
+- See `docs/development/contributing.md` for commands, directory roles and documentation rules.
+  Stage named paths and inspect the staged diff before committing.
+- Keep the unreleased version at `0.1.0` and the English/Chinese README commands consistent.
+  Shared skills live in `.agents/skills/`; `.claude/skills` is its relative discovery symlink.

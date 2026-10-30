@@ -8,9 +8,9 @@ from pathlib import Path
 import can
 import pytest
 
-from motor_identification.devices.registry import connection, driver
-from motor_identification.devices.spec import MotorSpec
-from motor_identification.devices.transactions import message
+from motorfit.devices.registry import connection, driver
+from motorfit.devices.spec import MotorSpec
+from motorfit.devices.transactions import message
 
 ROOT = Path(__file__).parents[2]
 PROFILES = [
@@ -238,8 +238,8 @@ def test_native_record_process_fit_reload_and_evaluate(profile, monkeypatch, tmp
 
     from bam.actuators import actuators
 
-    from motor_identification.acquisition.recorder import record
-    from motor_identification.identification.bam import bam_tool, load_model, process
+    from motorfit.acquisition.recorder import record
+    from motorfit.identification.bam import bam_tool, load_model, process
 
     class Clock:
         now = 100.0
@@ -276,7 +276,7 @@ def test_native_record_process_fit_reload_and_evaluate(profile, monkeypatch, tmp
         clock = Clock()
         bus = DeviceBus(spec.family, spec.protocol.get("firmware_version", 8), clock)
         with monkeypatch.context() as m:
-            import motor_identification.acquisition.effort as effort
+            import motorfit.acquisition.effort as effort
 
             m.setattr(can, "Bus", lambda **kw: bus)
             m.setattr(effort.time, "monotonic", clock.monotonic)
@@ -337,7 +337,7 @@ def test_native_record_process_fit_reload_and_evaluate(profile, monkeypatch, tmp
 def test_failed_state_read_closes_and_disables(profile, monkeypatch, tmp_path):
     import json
 
-    from motor_identification.acquisition.recorder import record
+    from motorfit.acquisition.recorder import record
 
     spec = spec_for(profile)
     bus = DeviceBus(spec.family, spec.protocol.get("firmware_version", 8))
@@ -406,7 +406,7 @@ def test_stop_is_sent_even_if_receive_queue_cannot_drain(profile, monkeypatch):
 def test_read_and_inspect_never_enable_or_write(profile, monkeypatch, tmp_path):
     import json
 
-    from motor_identification.devices.diagnostics import inspect
+    from motorfit.devices.diagnostics import inspect
 
     spec = spec_for(profile)
     bus = DeviceBus(spec.family, spec.protocol.get("firmware_version", 8))

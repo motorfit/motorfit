@@ -6,9 +6,9 @@
 
 <p align="center">
   <a href="pyproject.toml"><img src="https://img.shields.io/badge/Version-0.1.0-607D8B?style=flat-square&amp;labelColor=334155" alt="Version 0.1.0"></a>
-  <a href="docs/environments.md"><img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&amp;labelColor=334155&amp;logo=python&amp;logoColor=white" alt="Python 3.12"></a>
+  <a href="https://motorfit.github.io/reference/backends.html"><img src="https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&amp;labelColor=334155&amp;logo=python&amp;logoColor=white" alt="Python 3.12"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-607D8B?style=flat-square&amp;labelColor=334155" alt="License: Apache-2.0"></a>
-  <a href="docs/acquisition.md"><img src="https://img.shields.io/badge/SocketCAN-Linux-607D8B?style=flat-square&amp;labelColor=334155&amp;logo=linux&amp;logoColor=white" alt="SocketCAN acquisition on Linux"></a>
+  <a href="https://motorfit.github.io/guide/acquisition.html"><img src="https://img.shields.io/badge/SocketCAN-Linux-607D8B?style=flat-square&amp;labelColor=334155&amp;logo=linux&amp;logoColor=white" alt="SocketCAN acquisition on Linux"></a>
 </p>
 
 <p align="center">
@@ -41,7 +41,7 @@ git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
 uv run --frozen motorfit demo \
-  --dataset examples/offline/manifest.json --output outputs/demo
+  --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
 This checks three complete recordings against a frozen model and writes a comparison plot, metrics and predicted trajectories to `outputs/demo/`. The repository is private; cloning requires access. MotorFit is unreleased at version 0.1.0.
@@ -51,12 +51,12 @@ This checks three complete recordings against a frozen model and writes a compar
 
 ```bash
 uv run --frozen motorfit process \
-  --raw examples/offline/raw --out outputs/processed --dt 0.01
+  --raw tests/fixtures/offline/raw --out outputs/processed --dt 0.01
 uv run --frozen motorfit fit \
   --logdir outputs/processed --model m1 --trials 20 --output outputs/demo-fit.json
 ```
 
-This small fit demonstrates the API. It does not reproduce the formal study's model selection. See the [identification guide](docs/bam-identification.md) for training, validation and evaluation.
+This small fit demonstrates the API. It does not reproduce the formal study's model selection. See the [identification guide](https://motorfit.github.io/guide/identification.html) for training, validation and evaluation.
 
 </details>
 
@@ -66,11 +66,11 @@ This small fit demonstrates the API. It does not reproduce the formal study's mo
 ```bash
 uv sync --frozen --extra simulation
 uv run --frozen --extra simulation motorfit replay \
-  --dataset examples/offline/manifest.json --engine mujoco \
+  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
   --dt 0.002 --output outputs/mujoco
 ```
 
-See [optional environments](docs/environments.md) for Newton and mjlab, and [validation](docs/validation.md) for supported models and replay settings.
+See [optional environments](https://motorfit.github.io/reference/backends.html) for Newton and mjlab, and [validation](https://motorfit.github.io/guide/validation.html) for supported models and replay settings.
 
 </details>
 
@@ -86,12 +86,12 @@ See [optional environments](docs/environments.md) for Newton and mjlab, and [val
 
 ## Documentation
 
-- **[Record your motor](docs/your-motor.md)** — select a profile, measure the fixture, configure the device and [collect data](docs/acquisition.md).
-- **[Identify and evaluate](docs/workflow.md)** — prepare recordings, fit candidate models and evaluate them on separate data.
-- **[Reproduce the RS05 study](docs/case-studies/rs05.md)** — 111 recordings, three loads and three physics backends. Git includes a three-record example; the full dataset and videos are [stored separately](docs/case-studies/rs05.md#what-to-reproduce).
-- **[Extend MotorFit](docs/architecture.md)** — understand the driver, controller, fixture and dataset interfaces.
+- **[Record your motor](https://motorfit.github.io/guide/configuration.html)** — select a profile, measure the fixture, configure the device and [collect data](https://motorfit.github.io/guide/acquisition.html).
+- **[Identify and evaluate](https://motorfit.github.io/getting-started/workflow.html)** — prepare recordings, fit candidate models and evaluate them on separate data.
+- **[Reproduce the RS05 study](https://motorfit.github.io/case-studies/rs05.html)** — 111 recordings, three loads and three physics backends. Git includes a three-record example; the full dataset and videos are [stored separately](https://motorfit.github.io/case-studies/rs05.html#what-to-reproduce).
+- **[Extend MotorFit](https://motorfit.github.io/development/architecture.html)** — understand the driver, controller, fixture and dataset interfaces.
 
-See the [documentation index](docs/index.md) for all guides and the [repository policy](docs/repository.md) for file placement and Git tracking.
+See the [documentation index](https://motorfit.github.io/index.html) for all guides and the [repository policy](https://motorfit.github.io/development/contributing.html) for file placement and Git tracking.
 
 ## Coding agents
 

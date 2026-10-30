@@ -2,73 +2,75 @@
 
 **Record a motor. Identify its dynamics. Validate the model.**
 
-MotorFit extends [Rhoban BAM](https://github.com/Rhoban/bam) with native motor
-drivers, bench-data acquisition and model validation. Collect commands and measured
-motion, identify actuator dynamics, and compare model predictions with recordings
-and supported physics backends.
+MotorFit adds motor drivers, experiment recording and simulation validation to
+[Rhoban BAM](https://github.com/Rhoban/bam). Start with a complete offline run,
+then use the same tools with a measured motor and fixture.
 
-![MotorFit workflow: real experiments, parameter identification and simulation validation.](images/overview.png)
+![Experiment, identification and simulation workflow](images/overview.png)
 
-## Start with a complete example
+## Start here
 
-[Install MotorFit and run the offline example](quickstart.md). Three recorded
-experiments and a frozen model let you check the workflow without a motor or GPU.
+- [Quickstart](getting-started/quickstart.md): install MotorFit and replay three recordings without hardware.
+- [Workflow](getting-started/workflow.md): plan a study, fit candidates and evaluate a fixed model.
+- [Configuration](guide/configuration.md): select a motor profile and describe the mounted assembly.
 
-When you are ready to collect data, follow [the experiment workflow](workflow.md)
-and [configure your own motor](your-motor.md).
+## Find a guide
 
-## What you can do
-
-| Task | Guide |
+| You want to… | Read |
 |---|---|
-| Choose a supported motor and connection | [Motor support](motors.md) |
-| Collect commands, feedback and wire evidence | [Acquisition](acquisition.md) |
-| Process data and fit BAM M1–M6 models | [Identification](bam-identification.md) |
-| Evaluate a fixed model and compare physics backends | [Validation](validation.md) |
-| Inspect a measured end-to-end application | [RS05 reference study](case-studies/rs05.md) |
-| Extend drivers, controllers and fixtures | [Architecture](architecture.md) |
+| Record motor commands and feedback | [Recording](guide/acquisition.md) |
+| Fit a model to your measurements | [Identification](guide/identification.md) |
+| Compare predictions with recordings | [Validation](guide/validation.md) |
+| Check supported devices and runtimes | [Motor support](reference/motors.md) · [Backends](reference/backends.md) |
+| Inspect a completed experiment | [RS05 study](case-studies/rs05.md) |
+| Add a driver or change the project | [Architecture](development/architecture.md) · [Contributing](development/contributing.md) |
 
-MotorFit is unreleased at **0.1.0**. The documentation is public; the source
-repository currently requires access. The [Chinese introduction](https://github.com/motorfit/motorfit/blob/main/README.zh-CN.md)
-provides the corresponding setup and project overview.
+The current version is **0.1.0**. The handbook is public; cloning the source
+repository requires access. A [Chinese introduction](https://github.com/motorfit/motorfit/blob/main/README.zh-CN.md)
+is available in the repository.
 
 ```{toctree}
 :hidden:
 :caption: Getting started
 
-quickstart
-workflow
-your-motor
-motors
+Quickstart <getting-started/quickstart>
+Workflow <getting-started/workflow>
 ```
 
 ```{toctree}
 :hidden:
-:caption: Record and identify
+:caption: User guide
 
-acquisition
-effort-motors
-trajectories
-bam-identification
-validation
+Configuration <guide/configuration>
+Recording <guide/acquisition>
+Effort control <guide/effort-control>
+Identification <guide/identification>
+Validation <guide/validation>
 ```
 
 ```{toctree}
 :hidden:
-:caption: RS05 reference study
+:caption: Reference
 
-case-studies/rs05
-fixture-masses
-limitations
+Motor support <reference/motors>
+Trajectories <reference/trajectories>
+Backends <reference/backends>
+Protocols <reference/protocols>
 ```
 
 ```{toctree}
 :hidden:
-:caption: Development and reference
+:caption: RS05 study
 
-architecture
-environments
-protocol-references
-repository
-documentation
+Experiment <case-studies/rs05>
+Fixture <case-studies/rs05-fixture>
+Findings <case-studies/rs05-findings>
+```
+
+```{toctree}
+:hidden:
+:caption: Development
+
+Architecture <development/architecture>
+Contributing <development/contributing>
 ```

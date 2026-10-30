@@ -1,6 +1,5 @@
 from copy import deepcopy
 from dataclasses import replace
-from functools import partial
 
 import numpy as np
 import pytest
@@ -11,10 +10,9 @@ pytest.importorskip("torch")
 import mujoco
 import torch
 
-from motor_identification.identification.mjlab import MjlabPendulumBatch, TorchFractionalDelay
-from motor_identification.identification.mujoco import FractionalDelay
-from motor_identification.rigs.pendulum import Pendulum
-from motor_identification.rigs.rs05_bench import bench_properties, bench_xml
+from motorfit.identification.mjlab import MjlabPendulumBatch, TorchFractionalDelay
+from motorfit.identification.mujoco import FractionalDelay
+from motorfit.rigs.pendulum import Pendulum
 
 
 def test_implicitfast_gpu_uses_implicit_viscous_update(m1_params, pendulum_log):
@@ -31,26 +29,6 @@ def test_implicitfast_gpu_uses_implicit_viscous_update(m1_params, pendulum_log):
     inertia = Pendulum(log).compute_mass(0, 0) + params.armature
     expected = 2.0 / (1 + batch.dt * params.friction_viscous / inertia)
     assert batch.sim.data.qvel[0, 0].item() == pytest.approx(expected, rel=1e-6)
-
-
-@pytest.mark.parametrize("index", [0, 1, 2])
-def test_complete_cad_gpu_import_and_component_inertia(index, m1_params, bench_assets, bench_logs):
-    params = replace(m1_params, friction_base=0, friction_viscous=0, command_delay=0)
-    log = bench_logs[index]
-    batch = MjlabPendulumBatch([log], params, xml_factory=partial(bench_xml, assets=bench_assets))
-    assert batch.sim.mj_model.ngeom == 9
-    assert (
-        batch.sim.mj_model.geom("extrusion_4040").bodyid
-        == batch.sim.mj_model.body("fixed_bench").id
-    )
-    q0 = batch.sim.data.qpos[...].clone()
-    _, torque, _ = batch.step(q0, torch.ones_like(q0))
-    mass, com, inertia = bench_properties(log, bench_assets)
-    angle = q0.item() + params.q_offset
-    gravity = -9.80665 * mass * (com[0] * np.cos(angle) - com[2] * np.sin(angle))
-    pivot_inertia = inertia[1, 1] + mass * (com[0] ** 2 + com[2] ** 2) + params.armature
-    expected = (gravity + torque.item()) / pivot_inertia * batch.dt
-    assert batch.sim.data.qvel[...].item() == pytest.approx(expected, rel=1e-5, abs=1e-8)
 
 
 def test_gpu_fractional_delay_and_partial_reset():

@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib
 import numpy as np
 
-from motor_identification.dataset import Dataset
+from motorfit.dataset import Dataset
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
@@ -34,7 +34,7 @@ PALETTES = {
 
 
 def render(output: Path, theme: str = "light") -> None:
-    dataset = Dataset(ROOT / "examples/offline/manifest.json")
+    dataset = Dataset(ROOT / "tests/fixtures/offline/manifest.json")
     row = next(row for row in dataset.rows if row["id"] == RECORD)
     log = dataset.log(row)
     measured = np.array([entry["position"] for entry in log["entries"]])
@@ -118,7 +118,7 @@ def render(output: Path, theme: str = "light") -> None:
             "Description": (
                 f"Record: {RECORD}; split: {row['split']}; all {len(time)} processed samples. "
                 f"Model SHA-256: {dataset.metadata['model_sha256']}. "
-                "Source: examples/offline/manifest.json. Saved frozen BAM reference; no refitting."
+                "Source: tests/fixtures/offline/manifest.json. Saved frozen BAM reference; no refitting."
             )
         },
     )
