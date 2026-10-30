@@ -16,6 +16,8 @@ root_doc = "index"
 source_suffix = {".md": "markdown"}
 exclude_patterns = ["_build", ".DS_Store"]
 templates_path = ["_templates"]
+html_static_path = ["_static"]
+html_css_files = ["custom.css"]
 html_sidebars = {"**": ["global-nav.html"]}
 
 extensions = [
