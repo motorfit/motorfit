@@ -1,0 +1,9 @@
+# Host PD in Nm/rad and Nm*s/rad; actual current/torque inputs are recorded.
+trajectory = "soccer_sweep"
+duration_s = 20.0
+amplitude = 0.15
+sweep_k = 0.02
+kp = 3.0
+kd = 0.15
+hz = 20.0
+telemetry_hz = 0.0

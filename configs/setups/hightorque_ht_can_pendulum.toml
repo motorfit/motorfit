@@ -1,0 +1,18 @@
+# Template: measure fixture, limits and current scale before hardware use.
+motor = "../motors/hightorque/ht_can.toml"
+fixture = "../fixtures/pendulum_100g_200mm.toml"
+acquisition = "../acquisition/effort_example.toml"
+coordinate_file = "../local/hightorque_ht_can_can0.toml"
+
+[device]
+channel = "can0"
+motor_id = 1
+# Default response IDs are derived from motor_id. Override feedback_id for ht_can firmware as needed.
+timeout_s = 0.1
+watchdog_ms = 0
+
+[coordinate]
+convention = "downward-positive-encoder"
+
+[supply]
+voltage = 24.0

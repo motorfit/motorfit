@@ -1,0 +1,13 @@
+# Protocol template: replace experiment limits with values for your mounted motor.
+name = "myactuator_rmd_x_v3"
+family = "myactuator"
+position = [-1.0, 1.0]
+velocity = [-10.0, 10.0]
+torque = [-1.0, 1.0]
+kp = [0.0, 500.0]
+kd = [0.0, 5.0]
+source = "https://www.myactuator.com/downloads-xseries"
+
+[protocol]
+torque_constant_nm_per_a = 1.0
+current_limit_a = 1.0

@@ -1,0 +1,10 @@
+# One slow, small chirp cycle over 8 s, relative to the initial shaft position.
+# These are diagnostic inputs, not manufacturer defaults or identified gains.
+trajectory = "soccer_sweep"
+duration_s = 8.0
+amplitude = 0.15
+sweep_k = 0.09817477042468103  # 2*pi / 8**2
+hz = 100.0
+telemetry_hz = 0.0
+kp = 5.0
+kd = 0.2

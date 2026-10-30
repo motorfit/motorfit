@@ -1,0 +1,13 @@
+# User-corrected mass mapping, 2026-10-24; planned 200 mm geometry, not a new run.
+# Point load: 200 g weight + 25.1 g shoulder bolt + 4.3 g nut.
+mass = 0.2294
+weight_mass = 0.2
+bolt_mass = 0.0251
+nut_mass = 0.0043
+fixture_revision = "2026-10-24-bolt-correction"
+length = 0.2
+arm_mass = 0.11
+# Arm/hub geometry priors; not fitted motor inertia.
+arm_com = 0.0900802043205295
+arm_inertia = 0.0014073185763008957
+hub_inertia = 0.00000216

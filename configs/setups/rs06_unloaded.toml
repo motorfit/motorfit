@@ -1,0 +1,19 @@
+# Template only: establish this device's own coordinate before movement.
+motor = "../motors/robstride/rs06.toml"
+fixture = "../fixtures/unloaded_shaft.toml"
+acquisition = "../acquisition/communication_check.toml"
+coordinate_file = "../local/rs06_example_can0.toml"
+
+[device]
+channel = "can0"
+motor_id = 127
+host_id = 255
+timeout_s = 0.2
+watchdog_ms = 100
+
+[coordinate]
+convention = "initial-encoder-relative"
+# A diagnostic reference to the current shaft angle, not a pendulum-down zero.
+
+[supply]
+voltage = 23.0

@@ -1,0 +1,10 @@
+# MIT mapping template; PMAX/VMAX/TMAX are checked against device registers before enabling.
+# The source describes the protocol; confirm ranges for the mounted model and firmware.
+name = "dm_4310"
+family = "damiao"
+position = [-12.5, 12.5]
+velocity = [-30.0, 30.0]
+torque = [-10.0, 10.0]
+kp = [0.0, 500.0]
+kd = [0.0, 5.0]
+source = "https://github.com/dmBots/motor-control-routine/tree/ae6c1031056908d3d8059f003bd015a9d6b21894"

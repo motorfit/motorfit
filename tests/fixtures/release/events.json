@@ -1,0 +1,11 @@
+{
+  "200g_35_v3_200g_r03_lift_and_drop_kp20_kd0.8": {
+    "processed_enable": 6.01,
+    "stop_tx": 5.998747002,
+    "stop_tx_bus": 5.998822,
+    "stop_ack1": 6.023654397,
+    "stop_ack1_bus": 6.023644,
+    "stop_ack2": 6.023786871,
+    "stop_ack2_bus": 6.02379
+  }
+}

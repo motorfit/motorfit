@@ -1,0 +1,45 @@
+# Local experiment archives: no exceptions, including manifests and summaries.
+/data/
+/outputs/
+# Retired experiment locations must not be reintroduced.
+/results/
+/models/
+/assets/
+/environments/
+/configs/simulation/release/
+/docs/images/references/
+/docs/images/overview-prompt.md
+/docs/images/offline-replay.png
+
+# Device coordinates and machine-specific configuration
+/configs/local/
+.env
+.env.*
+
+# Environments, caches and generated work
+.venv/
+.venvs/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+.nox/
+.superpowers/
+build/
+dist/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+wandb/
+*.log
+*.canlog
+*.so
+*.o
+*.tmp
+*.swp
+.DS_Store

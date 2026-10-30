@@ -1,0 +1,13 @@
+# Point load: 100 g weight + 20.5 g shoulder bolt + 4.3 g nut at 200 mm.
+# Authoritative user correction, 2026-10-24: only 100 g uses the 20.5 g bolt.
+mass = 0.1248
+weight_mass = 0.1
+bolt_mass = 0.0205
+nut_mass = 0.0043
+fixture_revision = "2026-10-24-bolt-correction"
+length = 0.2
+arm_mass = 0.11
+# Geometry priors; arm/hub inertia about the pivot, in kg m².
+arm_com = 0.0900802043205295
+arm_inertia = 0.0014073185763008957
+hub_inertia = 0.00000216

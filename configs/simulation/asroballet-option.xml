@@ -1,0 +1,1 @@
+<option timestep="0.002" integrator="implicitfast" impratio="10" cone="elliptic" noslip_iterations="1" />

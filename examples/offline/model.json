@@ -1,0 +1,35 @@
+{
+  "torque_ratio": 1.1639233433530467,
+  "armature": 0.00023631471353394536,
+  "q_offset": -0.001214251462938909,
+  "command_delay": 0.006293081495280065,
+  "friction_base": 0.04300222579284436,
+  "friction_viscous": 0.002987922558477437,
+  "model": "m1",
+  "actuator": "rs05",
+  "motor_spec": {
+    "name": "rs05",
+    "family": "robstride",
+    "position": [
+      -12.57,
+      12.57
+    ],
+    "velocity": [
+      -50.0,
+      50.0
+    ],
+    "torque": [
+      -5.5,
+      5.5
+    ],
+    "kp": [
+      0.0,
+      500.0
+    ],
+    "kd": [
+      0.0,
+      5.0
+    ],
+    "source": "https://github.com/RobStride/Product_Information/blob/667444b6d1f9fabe01b87765ee73abd29d54e71b/Product%20Literature/RS05/RS05User%20Manual260713.pdf"
+  }
+}

@@ -1,0 +1,10 @@
+# Native BAM trajectory timing/formula. Select any of the four documented
+# trajectories with --trajectory. Gains below remain an explicit experiment
+# setting from soccer-bam, not a RobStride manufacturer default.
+trajectory = "sin_time_square"
+duration_s = 6.0
+amplitude = 1.0
+hz = 100.0
+telemetry_hz = 0.0  # Control receives only type-2 replies; run inspect separately.
+kp = 30.0
+kd = 2.0

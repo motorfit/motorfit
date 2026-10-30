@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "motor_uid": "542b38001c443916",
+  "model_path": "model.json",
+  "model_sha256": "2a66e1a3598a0120764d9c39cbef0045932f95bab22af497fe86f6b434386ed9",
+  "records": [
+    {
+      "id": "100g_09_v3_100g_r01_sin_time_square_kp20_kd0.6",
+      "mass_g": 100,
+      "index": 9,
+      "repeat": 1,
+      "trajectory": "sin_time_square",
+      "kp": 20,
+      "kd": 0.6,
+      "split": "gain_validation",
+      "sha256": "73d2ee7e231bc7d79b6ece7a5dcae0b00ef4b9b8e012644a291c16b9b40bd55d",
+      "processed_path": "processed/100g_09_v3_100g_r01_sin_time_square_kp20_kd0.6.json",
+      "raw_path": "raw/100g_09_v3_100g_r01_sin_time_square_kp20_kd0.6/raw.json",
+      "reference_path": "reference/100g_09_v3_100g_r01_sin_time_square_kp20_kd0.6.npz",
+      "reference_sha256": "b9be7b428d5239e0436ba5f0e9209509a4f767a1214c56ee16fb22c43e8b777b",
+      "raw_sha256": "453180cae246c2c09b9ff07396d6e3777697a3c27216eff90884885de79e5231"
+    },
+    {
+      "id": "200g_35_v3_200g_r03_lift_and_drop_kp20_kd0.8",
+      "mass_g": 200,
+      "index": 35,
+      "repeat": 3,
+      "trajectory": "lift_and_drop",
+      "kp": 20,
+      "kd": 0.8,
+      "split": "final_test",
+      "sha256": "ccec5144aac5df68e461102845f5de4e6b369c62a7b9f2b5b9115190a9e4b97e",
+      "processed_path": "processed/200g_35_v3_200g_r03_lift_and_drop_kp20_kd0.8.json",
+      "raw_path": "raw/200g_35_v3_200g_r03_lift_and_drop_kp20_kd0.8/raw.json",
+      "reference_path": "reference/200g_35_v3_200g_r03_lift_and_drop_kp20_kd0.8.npz",
+      "reference_sha256": "4e0ec1d9f3e4fef3be38c62ed4f4d5645282bfc66b755cd267ff7ebe468c0ab8",
+      "raw_sha256": "a9789bc2eea8d04bc2c720c21f638509773bc4cfcec4fd0ec1195053c645881e"
+    },
+    {
+      "id": "500g_06_v3_500g_r01_sin_sin_kp20_kd1.2",
+      "mass_g": 500,
+      "index": 6,
+      "repeat": 1,
+      "trajectory": "sin_sin",
+      "kp": 20,
+      "kd": 1.2,
+      "split": "gain_validation",
+      "sha256": "68f7a500d08b0bb4e3f31836979e23c1a4379058b1f937b1b3a7746b6701a325",
+      "processed_path": "processed/500g_06_v3_500g_r01_sin_sin_kp20_kd1.2.json",
+      "raw_path": "raw/500g_06_v3_500g_r01_sin_sin_kp20_kd1.2/raw.json",
+      "reference_path": "reference/500g_06_v3_500g_r01_sin_sin_kp20_kd1.2.npz",
+      "reference_sha256": "13e25e81598fc6aa13c03b9d59d2ca15ca5a08c1145fc67d19e01b10a34f40e2",
+      "raw_sha256": "7b42dfeb195dc372128501c2fa07e2100c3528ac6208b37a4fd37ae2905420ff"
+    }
+  ],
+  "split_counts": {
+    "gain_validation": 2,
+    "final_test": 1
+  },
+  "formal_raw_samples": 6003,
+  "source_policy": "Original raw and processed JSON bytes are unchanged. Paths in those historical snapshots are provenance only; resolve current inputs through this manifest.",
+  "example_only": true
+}

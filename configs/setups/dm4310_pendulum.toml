@@ -1,0 +1,18 @@
+# Copy and replace the fixture, supply and motion settings with your measured setup.
+motor = "../motors/damiao/4310.toml"
+fixture = "../fixtures/pendulum_100g_200mm.toml"
+acquisition = "../acquisition/damiao_example.toml"
+coordinate_file = "../local/dm4310_example_can0.toml"
+
+[device]
+channel = "can0"
+motor_id = 1
+feedback_id = 17
+timeout_s = 0.2
+watchdog_ms = 100
+
+[coordinate]
+convention = "downward-positive-encoder"
+
+[supply]
+voltage = 24.0

@@ -1,0 +1,8 @@
+# Demonstration settings, not commissioned gains for an unknown assembly.
+trajectory = "sin_time_square"
+duration_s = 20.0
+amplitude = 0.1
+hz = 100.0
+telemetry_hz = 0.0
+kp = 2.0
+kd = 0.2

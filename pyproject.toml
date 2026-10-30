@@ -1,0 +1,50 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "motorfit"
+version = "0.1.0"
+description = "Motor identification and validation workflows built on Rhoban BAM"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "better-actuator-models",
+  "python-can>=4.4,<5",
+  # BAM uses CmaEsSampler(restart_strategy="bipop"); 4.4+ ignores this option.
+  "optuna>=4.3,<4.4",
+  "cmaes>=0.11,<1",
+  "wandb>=0.19,<1",
+  "matplotlib>=3.9,<4",
+  "numpy==2.3.4",
+  "scipy>=1.14,<2",
+]
+
+[project.scripts]
+motorfit = "motor_identification.cli:main"
+
+[project.optional-dependencies]
+simulation = [
+    "mujoco==3.17.0",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
+
+[tool.uv.sources]
+better-actuator-models = { path = "third_party/bam", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/motor_identification"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

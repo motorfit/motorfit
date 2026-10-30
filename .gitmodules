@@ -1,0 +1,3 @@
+[submodule "third_party/bam"]
+	path = third_party/bam
+	url = https://github.com/Rhoban/bam.git

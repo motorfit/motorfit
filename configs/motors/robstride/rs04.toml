@@ -1,0 +1,10 @@
+# Extended-CAN mapping template; verify against the mounted firmware before use.
+# The source is the model protocol manual; template ranges remain hardware-unverified.
+name = "rs04"
+family = "robstride"
+position = [-12.566370964050293, 12.566370964050293]
+velocity = [-15.0, 15.0]
+torque = [-120.0, 120.0]
+kp = [0.0, 5000.0]
+kd = [0.0, 100.0]
+source = "https://github.com/RobStride/Product_Information/blob/667444b6d1f9fabe01b87765ee73abd29d54e71b/Product%20Literature/RS04/RS04User%20Manual260713.pdf"

@@ -1,0 +1,20 @@
+name: Repository checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          submodules: recursive
+      - run: python3 scripts/check_repository.py
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.9.18"
+          python-version: "3.12"
+      - run: uv sync --frozen --extra simulation
+      - run: uv run --frozen --extra simulation ruff check src tests scripts
+      - run: uv run --frozen --extra simulation pytest -q
+      - run: uv run --frozen --extra simulation motorfit demo --dataset examples/offline/manifest.json --output outputs/ci-demo

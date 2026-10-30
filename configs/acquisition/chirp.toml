@@ -1,0 +1,9 @@
+# soccer-bam's example gains, not manufacturer defaults or calibrated gains.
+trajectory = "soccer_sweep"
+duration_s = 30.0
+amplitude = 1.0
+sweep_k = 0.1
+hz = 100.0
+telemetry_hz = 0.0
+kp = 30.0
+kd = 2.0

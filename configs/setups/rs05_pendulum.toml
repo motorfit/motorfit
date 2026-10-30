@@ -1,0 +1,19 @@
+# Template: copy this file for each mounted RS05. No device zero is distributed.
+motor = "../motors/robstride/rs05.toml"
+fixture = "../fixtures/pendulum_100g_200mm.toml"
+acquisition = "../acquisition/bam_6s.toml"
+coordinate_file = "../local/rs05_example_can0.toml"
+
+[device]
+channel = "can0"
+motor_id = 127
+host_id = 255
+timeout_s = 0.2
+watchdog_ms = 100
+
+[coordinate]
+convention = "downward-positive-encoder"
+# Physical zero belongs to this mounted device, never to its motor model.
+
+[supply]
+voltage = 23.0  # Supply setting; not a streamed voltage measurement.

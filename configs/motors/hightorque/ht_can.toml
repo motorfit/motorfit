@@ -1,0 +1,9 @@
+# Protocol template: replace experiment limits with values for your mounted motor.
+name = "hightorque_ht_can"
+family = "hightorque"
+position = [-1.0, 1.0]
+velocity = [-10.0, 10.0]
+torque = [-1.0, 1.0]
+kp = [0.0, 500.0]
+kd = [0.0, 5.0]
+source = "https://www.hightorque.cn/wp-content/uploads/2024/03/Joint-Module-Commissioning-ManualV2.pdf"

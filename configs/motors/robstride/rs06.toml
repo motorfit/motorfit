@@ -1,0 +1,9 @@
+# RobStride extended-CAN field ranges; not operating thresholds.
+name = "rs06"
+family = "robstride"
+position = [-12.57, 12.57]
+velocity = [-50.0, 50.0]
+torque = [-36.0, 36.0]
+kp = [0.0, 5000.0]
+kd = [0.0, 100.0]
+source = "https://github.com/RobStride/Product_Information/blob/667444b6d1f9fabe01b87765ee73abd29d54e71b/Product%20Literature/RS06/RS06User%20Manual260713.pdf"
