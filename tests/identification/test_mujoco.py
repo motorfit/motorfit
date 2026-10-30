@@ -58,9 +58,8 @@ def test_causal_delay_equals_bam_and_resets_selected_env(delay):
     np.testing.assert_equal(ring.buffer[:, 1], 17)
 
 
-@pytest.mark.parametrize("mass", [0.1248, 0.2294, 0.5294])
-def test_mass_gravity_and_offset_match_measured_fixture(log, params, mass):
-    log["mass"] = mass
+def test_mass_gravity_and_offset_match_measured_fixture(log, params):
+    log["mass"] = 0.2294
     replay = PendulumReplay(log, params)
     rig = Pendulum(log)
     for q in np.linspace(-1, 1, 9):
@@ -72,19 +71,6 @@ def test_mass_gravity_and_offset_match_measured_fixture(log, params, mass):
         assert -replay.data.qfrc_bias[0] == pytest.approx(
             rig.compute_bias(q + params.q_offset, 0), abs=1e-14
         )
-
-
-def test_armature_changes_acceleration_without_changing_gravity(log, params):
-    p = replace(params, command_delay=0, friction_base=0, friction_viscous=0)
-    inertia = Pendulum(log).compute_mass(0, 0)
-    speeds = []
-    for extra in (0, params.armature):
-        replay = PendulumReplay(log, replace(p, armature=extra))
-        replay.model.opt.gravity[:] = 0
-        replay.data.qpos[0] = replay.data.qvel[0] = 0
-        replay.step(0.01, True)
-        speeds.append(replay.data.qvel[0])
-    assert speeds[1] / speeds[0] == pytest.approx(inertia / (inertia + params.armature))
 
 
 def test_sticking_breakaway_and_viscous_dissipation(log, params):

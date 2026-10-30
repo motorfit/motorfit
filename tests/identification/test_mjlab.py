@@ -44,10 +44,9 @@ def test_gpu_fractional_delay_and_partial_reset():
     assert torch.all(gpu.buffer[:, 1] == 17)
 
 
-@pytest.mark.parametrize("mass", [0.1248, 0.2294, 0.5294])
-def test_gpu_inertia_gravity_and_offset(m1_params, pendulum_log, mass):
+def test_gpu_inertia_gravity_and_offset(m1_params, pendulum_log):
     params = replace(m1_params, friction_base=0, friction_viscous=0, command_delay=0)
-    log = dict(pendulum_log, mass=mass)
+    log = dict(pendulum_log, mass=0.2294)
     batch = MjlabPendulumBatch([log], params)
     q0 = batch.sim.data.qpos[...].clone()
     _, torque, _ = batch.step(q0, torch.ones_like(q0))

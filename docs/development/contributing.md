@@ -50,6 +50,12 @@ The offline test invokes the installed command entry point and checks relocated
 fixtures and modified inputs. Optional Newton/mjlab tests skip when their runtimes
 are absent; they are not evidence of GPU or hardware validation in ordinary CI.
 
+Keep tests focused on distinct failure modes. Test shared codecs with representative
+profiles and independent expected bytes; repeat by model or firmware only when the
+encoding or behavior differs. Run the complete fitting pipeline once per control
+source (MIT or recorded effort). Avoid duplicating an integration check with mocks
+or retesting upstream physics; retain failure cleanup and data-integrity checks.
+
 ## Documentation structure
 
 Every page has one role and one place in the sidebar:

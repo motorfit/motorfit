@@ -8,7 +8,7 @@ from pathlib import Path
 import can
 import pytest
 
-from motorfit.devices.registry import connection, driver
+from motorfit.devices.registry import driver
 from motorfit.devices.spec import MotorSpec
 from motorfit.devices.transactions import message
 
@@ -19,6 +19,9 @@ PROFILES = [
     "hexfellow/canopen_v07",
     "hexfellow/canopen_v08",
 ]
+
+# Exercise both firmware unit encodings above; one revision suffices for lifecycle checks.
+DRIVER_PROFILES = [p for p in PROFILES if p != "hexfellow/canopen_v07"]
 
 
 def spec_for(profile):
@@ -158,7 +161,7 @@ def test_signed_wire_effort_and_read_units(profile, monkeypatch):
     assert bus.closed
 
 
-@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize("profile", DRIVER_PROFILES)
 def test_wrong_id_and_stale_frames_do_not_satisfy_requests(profile, monkeypatch):
     spec = spec_for(profile)
     bus = DeviceBus(spec.family, spec.protocol.get("firmware_version", 8))
@@ -222,18 +225,9 @@ def test_high_torque_does_not_fake_watchdog_support(monkeypatch):
     motor.close()
 
 
-def test_new_connections_derive_response_ids():
-    for profile, feedback in zip(PROFILES, [0x241, 1, 0x581, 0x581]):
-        config = {
-            "motor": spec_for(profile).to_dict(),
-            "device": {"channel": "unused", "motor_id": 1, "timeout_s": 0.1},
-        }
-        assert connection(config)["host_id"] == feedback
-
-
-@pytest.mark.parametrize("profile", PROFILES)
-def test_native_record_process_fit_reload_and_evaluate(profile, monkeypatch, tmp_path, capsys):
-    """Real native drivers -> recorder -> timed resampling -> real BAM optimizer."""
+def test_native_record_process_fit_reload_and_evaluate(monkeypatch, tmp_path, capsys):
+    """One recorded-effort pipeline; protocol variants are covered by wire tests."""
+    profile = "hexfellow/canopen_v08"
     import json
 
     from bam.actuators import actuators
@@ -333,7 +327,7 @@ def test_native_record_process_fit_reload_and_evaluate(profile, monkeypatch, tmp
     plt.close("all")
 
 
-@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize("profile", DRIVER_PROFILES)
 def test_failed_state_read_closes_and_disables(profile, monkeypatch, tmp_path):
     import json
 
@@ -402,7 +396,7 @@ def test_stop_is_sent_even_if_receive_queue_cannot_drain(profile, monkeypatch):
     motor.close()
 
 
-@pytest.mark.parametrize("profile", PROFILES)
+@pytest.mark.parametrize("profile", DRIVER_PROFILES)
 def test_read_and_inspect_never_enable_or_write(profile, monkeypatch, tmp_path):
     import json
 

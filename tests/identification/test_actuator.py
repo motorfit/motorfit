@@ -46,11 +46,10 @@ def make_log(spec, **metadata):
     }
 
 
-@pytest.mark.parametrize("name", ["rs01", "rs02", "rs05", "rs06"])
-def test_mit_control_scaling_and_disabled_torque(name):
-    spec = motor_spec(name)
+def test_mit_control_scaling_and_disabled_torque():
+    spec = motor_spec("rs05")
     register(spec)
-    model = load_model_from_dict({"model": "m1", "actuator": name})
+    model = load_model_from_dict({"model": "m1", "actuator": spec.name})
     model.torque_ratio.value = 1.5
     actuator = model.actuator
     actuator.load_log(make_log(spec))

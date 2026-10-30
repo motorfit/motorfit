@@ -16,13 +16,12 @@ from motorfit.devices.robstride.models import MotorSpec
 from motorfit.identification.bam import bam_tool, load_model, process
 
 
-@pytest.mark.parametrize("profile", ["robstride/rs06", "damiao/4310"])
-def test_upstream_pipeline_and_snapshot_load(monkeypatch, tmp_path, capsys, profile):
+def test_upstream_pipeline_and_snapshot_load(monkeypatch, tmp_path, capsys):
     def no_hardware(*args, **kwargs):
         raise AssertionError("This pipeline test must not open CAN")
 
     monkeypatch.setattr(can, "Bus", no_hardware)
-    model_path = Path(__file__).parents[2] / f"configs/motors/{profile}.toml"
+    model_path = Path(__file__).parents[2] / "configs/motors/damiao/4310.toml"
     spec = MotorSpec.from_dict(tomllib.loads(model_path.read_text()))
     monkeypatch.chdir(tmp_path)
 

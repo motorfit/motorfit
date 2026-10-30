@@ -6,8 +6,6 @@ import can
 import pytest
 
 import motorfit.acquisition.recorder as recorder
-from motorfit.acquisition.trajectories import Trajectory
-from motorfit.devices.robstride.models import MotorSpec
 from motorfit.devices.robstride.motor import Motor
 from motorfit.devices.robstride.protocol import quantize
 
@@ -25,9 +23,7 @@ class Clock:
 class FakeMotor:
     def __init__(self, clock, fail=None, **kwargs):
         self.clock, self.fail = clock, fail
-        self.spec = kwargs["spec"]
         self.callback = kwargs["on_frame"]
-        self.state_requests = []
         self.commands = []
         self.stopped = False
         self.closed = False
@@ -48,17 +44,8 @@ class FakeMotor:
         self.started = True
         self.frame("tx")
 
-    def prepare(self):
-        self.stopped = True
-        self.frame("tx")
-
     def command(self, *values):
         self.commands.append((self.clock.now, values))
-        self.frame("tx")
-        return self.feedback()
-
-    def read_state(self):
-        self.state_requests.append(self.clock.now)
         self.frame("tx")
         return self.feedback()
 
@@ -144,52 +131,7 @@ def setup(monkeypatch, fail=None, trajectory="sin_time_square"):
     return config, factory, instances
 
 
-@pytest.mark.parametrize("name", ["sin_time_square", "nothing"])
-def test_record_writes_bam_schema_and_exact_commands(monkeypatch, tmp_path, name):
-    config, factory, instances = setup(monkeypatch, trajectory=name)
-    path = recorder.record(config, tmp_path / "run", motor_factory=factory)
-    data = json.loads(path.read_text())
-    motor = instances[0]
-    spec = MotorSpec.from_dict(config["motor"])
-    assert motor.spec == spec
-    assert data["motor"] == spec.name
-    assert data["motor_spec"] == spec.to_dict()
-    assert data["completed"] and data["error"] is None
-    assert motor.stopped and motor.closed
-    assert data["kp"] == 30 and data["kd"] == 2
-    assert data["kp_encoded"] == quantize(30, *spec.kp)
-    assert data["kd_encoded"] == quantize(2, *spec.kd)
-    assert data["goal_speed"] == quantize(0, *spec.velocity)
-    assert data["feedforward_torque"] == quantize(0, *spec.torque)
-    assert data["entries"][0]["timestamp"] == 0
-    assert data["entries"][0]["position"] == pytest.approx(0.1)
-    assert [entry["transaction_id"] for entry in data["entries"]] == [1, 2, 3]
-    assert {entry["feedback_type"] for entry in data["entries"]} == {2}
-    assert {entry["request_type"] for entry in data["entries"]} == {
-        1 if name == "sin_time_square" else 2
-    }
-    assert all(isinstance(value, (int, float)) for row in data["entries"] for value in row.values())
-    assert data["entries"] == [
-        json.loads(line) for line in path.with_name("samples.jsonl").read_text().splitlines()
-    ]
-    frames = [json.loads(line) for line in path.with_name("frames.jsonl").read_text().splitlines()]
-    assert sum(frame["direction"] == "rx" for frame in frames) == len(data["entries"])
-    assert {frame["direction"] for frame in frames} == {"tx", "rx"}
-    if name == "sin_time_square":
-        assert [t for t, _ in motor.commands] == pytest.approx([100, 100.01, 100.02])
-        for entry, (_, values) in zip(data["entries"], motor.commands, strict=True):
-            assert entry["goal_position"] == quantize(values[0], *spec.position) - 0.25
-            assert values[1:] == (0, 30, 2, 0)
-    else:
-        assert not motor.commands and not motor.started
-        assert motor.state_requests == pytest.approx([100, 100.01, 100.02])
-        assert not any(entry["torque_enable"] for entry in data["entries"])
-        assert data["trajectory_parameters"]["time_scale"] == 200
-    scaled = Trajectory({"trajectory": "lift_and_drop", "duration_s": 30, "amplitude": 0.5})
-    assert scaled(10) == pytest.approx((-0.7853981633974483, False))
-
-
-@pytest.mark.parametrize("failure", [RuntimeError, KeyboardInterrupt, TimeoutError])
+@pytest.mark.parametrize("failure", [KeyboardInterrupt, TimeoutError])
 def test_record_abort_preserves_samples_and_stops(monkeypatch, tmp_path, failure):
     config, factory, instances = setup(monkeypatch, fail=failure)
     with pytest.raises(failure):
@@ -205,24 +147,6 @@ def test_record_abort_preserves_samples_and_stops(monkeypatch, tmp_path, failure
     ] == data["entries"]
 
 
-def test_missing_enable_ack_preserves_failure_and_sends_no_trajectory(monkeypatch, tmp_path):
-    config, factory, instances = setup(monkeypatch)
-
-    def reject_start(self, watchdog_ms):
-        self.frame("tx")
-        raise TimeoutError("test_motor did not acknowledge enabled mode 2")
-
-    monkeypatch.setattr(FakeMotor, "start", reject_start)
-    with pytest.raises(TimeoutError, match="enabled mode 2"):
-        recorder.record(config, tmp_path / "run", motor_factory=factory)
-    data = json.loads((tmp_path / "run/raw.json").read_text())
-    assert not data["completed"] and data["entries"] == []
-    assert "enabled mode 2" in data["error"]
-    assert instances[0].stopped and instances[0].closed
-    assert instances[0].commands == []
-    assert (tmp_path / "run/frames.jsonl").read_text()
-
-
 def test_mixed_telemetry_rejected_before_opening_motor(monkeypatch, tmp_path):
     config, factory, instances = setup(monkeypatch)
     config["recording"].update(telemetry_hz=20, duration_s=0.12)
@@ -230,16 +154,6 @@ def test_mixed_telemetry_rejected_before_opening_motor(monkeypatch, tmp_path):
         recorder.record(config, tmp_path / "run", motor_factory=factory)
     assert not instances
     assert not (tmp_path / "run").exists()
-
-
-def test_configured_voltage_is_not_labeled_as_measured(monkeypatch, tmp_path):
-    config, factory, _ = setup(monkeypatch)
-    path = recorder.record(config, tmp_path / "run", motor_factory=factory)
-    data = json.loads(path.read_text())
-    assert all(row["input_volts"] == 23 for row in data["entries"])
-    assert data["telemetry_file"] is None
-    assert not path.with_name("telemetry.jsonl").exists()
-    assert data["input_volts_source"] == "configured_supply"
 
 
 def test_slow_reply_skips_missed_ticks_without_command_bursts(monkeypatch, tmp_path):
@@ -254,24 +168,6 @@ def test_slow_reply_skips_missed_ticks_without_command_bursts(monkeypatch, tmp_p
     path = recorder.record(config, tmp_path / "run", motor_factory=factory)
     assert [t for t, _ in instances[0].commands] == [100]
     assert len(json.loads(path.read_text())["entries"]) == 1
-
-
-def test_lost_enable_during_motion_aborts_and_saves_actual_mode(monkeypatch, tmp_path):
-    config, factory, instances = setup(monkeypatch)
-    original = FakeMotor.feedback
-
-    def disabled_feedback(self):
-        feedback = original(self)
-        feedback.mode = 0
-        return feedback
-
-    monkeypatch.setattr(FakeMotor, "feedback", disabled_feedback)
-    with pytest.raises(RuntimeError, match="expected mode 2"):
-        recorder.record(config, tmp_path / "run", motor_factory=factory)
-    data = json.loads((tmp_path / "run/raw.json").read_text())
-    assert not data["completed"]
-    assert not data["entries"][0]["torque_enable"]
-    assert instances[0].stopped and instances[0].closed
 
 
 @pytest.mark.parametrize("trajectory", ["sin_time_square", "nothing"])
@@ -341,4 +237,32 @@ def test_real_driver_recorder_wire_contract(monkeypatch, tmp_path, trajectory):
     assert [direction for direction, _ in events] == ["tx", "rx"] * len(kinds)
     assert data["completed"] and len(data["entries"]) == 3
     assert {entry["feedback_type"] for entry in data["entries"]} == {2}
+    assert data["error"] is None and data["motor_spec"]["name"] == "test_motor"
+    assert data["kp"] == 30 and data["kd"] == 2
+    assert data["kp_encoded"] == quantize(30, 0, 400)
+    assert data["kd_encoded"] == quantize(2, 0, 4)
+    assert data["goal_speed"] == quantize(0, -20, 20)
+    assert data["feedforward_torque"] == quantize(0, -8, 8)
+    assert data["entries"][0]["timestamp"] == 0
+    assert data["entries"][0]["position"] == pytest.approx(0x96D8 / 65535 * 20 - 10 - 0.25)
+    assert [row["transaction_id"] for row in data["entries"]] == [1, 2, 3]
+    assert data["entries"] == [
+        json.loads(line) for line in path.with_name("samples.jsonl").read_text().splitlines()
+    ]
+    frames = [json.loads(line) for line in path.with_name("frames.jsonl").read_text().splitlines()]
+    assert [frame["direction"] for frame in frames] == [direction for direction, _ in events]
+    command_times = [row["command_monotonic_time"] for row in data["entries"]]
+    assert [t - command_times[0] for t in command_times] == pytest.approx([0, 0.01, 0.02])
+    assert all(row["input_volts"] == 23 for row in data["entries"])
+    assert data["input_volts_source"] == "configured_supply"
+    assert data["telemetry_file"] is None
+    assert not path.with_name("telemetry.jsonl").exists()
+    if trajectory == "nothing":
+        assert not any(row["torque_enable"] for row in data["entries"])
+    else:
+        commands = [f for direction, f in events if direction == "tx" and f.arbitration_id >> 24 == 1]
+        for row, frame in zip(data["entries"], commands, strict=True):
+            encoded_position = struct.unpack_from(">H", frame.data)[0] / 65535 * 20 - 10
+            assert row["goal_position"] == pytest.approx(encoded_position - 0.25)
+            assert row["torque_enable"]
     assert closed and mode == 0

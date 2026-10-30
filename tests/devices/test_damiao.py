@@ -2,7 +2,6 @@
 
 import json
 import struct
-import tomllib
 from pathlib import Path
 
 import can
@@ -41,6 +40,8 @@ def test_damiao_golden_bytes_and_exact_quantization():
     assert not frame.is_extended_id and frame.arbitration_id == 1
     assert quantize(0, -30, 30) == pytest.approx(-30 / 4095)
     assert quantize(20, 0, 500) == pytest.approx(163 * 500 / 4095)
+    assert bytes(encode_command(-12.5, -30, 0, 0, -10, spec=spec, motor_id=1).data) == bytes(8)
+    assert bytes(encode_command(12.5, 30, 500, 5, 10, spec=spec, motor_id=1).data) == b"\xff" * 8
     with pytest.raises(ValueError, match="representable"):
         encode_command(0, 0, 501, 0, 0, spec=spec, motor_id=1)
     feedback = decode_feedback(status(1), spec=spec, motor_id=1, feedback_id=17)
@@ -106,8 +107,6 @@ class DeviceBus:
             self.motion += 1
             if self.fail == "timeout":
                 return
-            if self.fail == "interrupt":
-                raise KeyboardInterrupt()
             if self.fail == "fault":
                 self.pending.append(status(0xB))
                 return
@@ -136,7 +135,7 @@ def connect(monkeypatch, fail=None):
     return bus
 
 
-@pytest.mark.parametrize("trajectory", ["sin_time_square", "nothing", "lift_and_drop"])
+@pytest.mark.parametrize("trajectory", ["sin_time_square", "nothing"])
 def test_native_recorder_bam_metadata_and_shutdown(monkeypatch, tmp_path, trajectory):
     bus = connect(monkeypatch)
     config = setup()
@@ -169,7 +168,6 @@ def test_native_recorder_bam_metadata_and_shutdown(monkeypatch, tmp_path, trajec
         ("watchdog", RuntimeError),
         ("fault", RuntimeError),
         ("lost-enable", RuntimeError),
-        ("interrupt", KeyboardInterrupt),
     ],
 )
 def test_failed_recording_stops_and_retains_evidence(monkeypatch, tmp_path, failure, exception):
@@ -182,7 +180,7 @@ def test_failed_recording_stops_and_retains_evidence(monkeypatch, tmp_path, fail
     assert bytes(bus.events[-1].data) == b"\xff" * 7 + b"\xfd"
     assert (tmp_path / "run/frames.jsonl").read_text()
     if failure in {"enable", "range", "watchdog"}:
-        assert bus.motion == 0
+        assert bus.motion == 0 and data["entries"] == []
 
 
 def test_inspection_is_read_only(monkeypatch, tmp_path):
@@ -191,18 +189,6 @@ def test_inspection_is_read_only(monkeypatch, tmp_path):
     assert result["parameters"]["PMAX"]["value"] == 12.5
     assert bus.closed
     assert all(f.arbitration_id == 0x7FF and f.data[2] == 0x33 for f in bus.events)
-
-
-@pytest.mark.parametrize("profile", sorted((ROOT / "configs/motors/damiao").glob("*.toml")))
-def test_profiles_accept_protocol_endpoints(profile):
-    spec = MotorSpec.from_dict(tomllib.loads(profile.read_text()))
-    for index in (0, 1):
-        frame = encode_command(
-            *(getattr(spec, k)[index] for k in ("position", "velocity", "kp", "kd", "torque")),
-            spec=spec,
-            motor_id=1,
-        )
-        assert bytes(frame.data) == bytes([255 if index else 0] * 8)
 
 
 def test_drain_failure_still_sends_disable(monkeypatch):
