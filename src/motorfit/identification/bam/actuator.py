@@ -59,12 +59,7 @@ class MITActuator(Actuator):
 
 def register(spec: MotorSpec) -> None:
     """Extend BAM's shared registry without replacing its dictionary."""
-    if spec.recorded_effort:
-        from .effort import RecordedEffortActuator
-
-        actuators[spec.name] = partial(RecordedEffortActuator, spec)
-    else:
-        actuators[spec.name] = partial(MITActuator, spec)
+    actuators[spec.name] = partial(MITActuator, spec)
 
 
 # Keep existing imports working; recorded RS05 numerics are unchanged.

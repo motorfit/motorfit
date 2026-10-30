@@ -1,6 +1,6 @@
 # Configuration
 
-Choose the [connection path](../reference/motors.md) from the controller protocol and control law. RobStride and Damiao have native acquisition adapters for the torque-based MIT law. MyActuator, HighTorque and Hexfellow use independent effort drivers and a recorded-input BAM adapter; follow [their workflow](effort-control.md).
+Choose the [connection path](../reference/motors.md) from the controller protocol and control law. RobStride and Damiao have native acquisition adapters for the torque-based MIT law.
 
 ## Configure the mounted assembly
 

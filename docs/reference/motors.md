@@ -1,6 +1,6 @@
 # Motor support
 
-MotorFit implements native SocketCAN acquisition for **RobStride, Damiao, MyActuator, HighTorque and Hexfellow**, with saved command/feedback evidence and adapters for BAM identification.
+MotorFit implements native SocketCAN acquisition for **RobStride and Damiao**, with saved command/feedback evidence and adapters for BAM identification.
 
 ## Native support
 
@@ -11,24 +11,12 @@ MotorFit implements native SocketCAN acquisition for **RobStride, Damiao, MyActu
 
 The Damiao identifiers correspond to DM3507, DM4310, DM4310P, DM4340, DM4340P, DM4340X, DM6006, DM8006, DM8009, DM10010L, DM10010, H3510, G6215, H6220, JH11 and 6248P. Profile `4340_v20` is the existing identifier for the **4340X** template; do not substitute the standard 4340 mapping.
 
-Profiles define protocol encoding ranges, not rated continuous torque, commissioned limits or identified physical parameters. Match the actual model and firmware, measure the fixture, and identify each mounted device. Hexfellow uses CAN-FD; the other families use classic CAN. Serial/DM_Device bridges and alternative RobStride CiA402/MIT firmware protocols are not implemented here.
+Profiles define protocol encoding ranges, not rated continuous torque, commissioned limits or identified physical parameters. Match the actual model and firmware, measure the fixture, and identify each mounted device. Both families use classic CAN. Serial/DM_Device bridges and alternative RobStride CiA402/MIT firmware protocols are not implemented here.
 
 ```bash
 uv run --frozen motorfit motors
 uv run --frozen motorfit motors --json
 ```
-
-## Current and torque protocols
-
-| Family | Protocol templates | Acquisition and identification |
-|---|---|---|
-| MyActuator | `rmd_x_v3` | A1 current commands; configured output Nm/A, multi-turn angle, measured current; recorded-effort BAM adapter |
-| HighTorque | `ht_can` | Pure torque 05/13; 17/01 sensor requests; recorded-effort BAM adapter |
-| Hexfellow | `canopen_v07`, `canopen_v08` | CANopen torque mode 4; addressed SDO over CAN-FD; firmware and peak-torque readback; recorded-effort BAM adapter |
-
-[Complete setup, record, process, fit and evaluate commands](../guide/effort-control.md). These are protocol templates, not a list of hardware-tested model variants. New templates deliberately use experiment limits instead of guessed vendor model specifications.
-
-All three have independent Python implementations and offline end-to-end tests. M1–M6 analytical BAM fitting/evaluation/plotting is supported; the existing MuJoCo/Newton/mjlab firmware-controller replay remains limited to torque-MIT models. Only RS05 has real reference data.
 
 ## Damiao acquisition
 
@@ -56,4 +44,4 @@ Each transaction drains queued frames, logs all frames and accepts only the conf
 
 See the [manufacturer protocol references](protocols.md) for framing, register access and firmware control modes. The source links in the profiles point to protocol documentation. Profile numbers are encoding templates and must be checked against the mounted device; they are not identified parameters or evidence of hardware validation. RS01/02/05/06 keep their existing pinned manuals and 16-bit codec. RS00/03/04 retain their current mapping ranges and model-specific gain limits, pending firmware/hardware verification.
 
-Tests exercise native current/torque frame packing, firmware-specific units, recorded-effort timing, Damiao frame packing, addressing, register readback, range mismatch, missing replies, fault/disable handling, interruption and the full offline BAM process/fit/load path. Only RS05 has recorded hardware validation; the remaining profiles require commissioning on the mounted device.
+Tests exercise RobStride and Damiao frame packing, addressing, register readback, range mismatch, missing replies, fault/disable handling, interruption and the full offline BAM process/fit/load path. Only RS05 has recorded hardware validation; the remaining profiles require commissioning on the mounted device.

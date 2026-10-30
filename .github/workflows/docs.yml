@@ -3,9 +3,10 @@ name: Documentation
 on:
   push:
     branches: [main]
-    paths: ["docs/**", "pyproject.toml", "uv.lock", ".github/workflows/docs.yml", "scripts/publish_docs.sh"]
+    tags: ["v*"]
+    paths: ["docs/**", "pyproject.toml", "uv.lock", ".github/workflows/docs.yml", "scripts/publish_docs.sh", "scripts/publish_docs.py"]
   pull_request:
-    paths: ["docs/**", "pyproject.toml", "uv.lock", ".github/workflows/docs.yml", "scripts/publish_docs.sh"]
+    paths: ["docs/**", "pyproject.toml", "uv.lock", ".github/workflows/docs.yml", "scripts/publish_docs.sh", "scripts/publish_docs.py"]
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,8 @@ jobs:
           version: "0.9.18"
           python-version: "3.12"
       - name: Build the handbook
+        env:
+          MOTORFIT_DOCS_VERSION: ${{ github.ref_type == 'tag' && github.ref_name || 'main' }}
         run: >-
           uv run --frozen --only-group docs sphinx-build
           -W --keep-going -b html -d outputs/docs-doctrees docs outputs/docs

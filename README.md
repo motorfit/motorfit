@@ -80,9 +80,6 @@ See [optional environments](https://motorfit.github.io/reference/backends.html) 
 | :--- | :--- |
 | [RobStride](configs/motors/robstride) | RS00–RS06 · onboard MIT control |
 | [Damiao](configs/motors/damiao) | 16 MIT profiles, including DM4310, DM4340 and DM8009 |
-| [MyActuator](configs/motors/myactuator) | RMD-X V3 · current commands with host PD |
-| [HighTorque](configs/motors/hightorque) | ht_can · torque commands with host PD |
-| [Hexfellow](configs/motors/hexfellow) | CANopen 07 / 08 · CAN-FD torque commands with host PD |
 
 ## Documentation
 

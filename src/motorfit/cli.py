@@ -94,12 +94,7 @@ def main(argv: list[str] | None = None) -> None:
 
         driver(config["motor"]["family"])  # Validate before dynamic import or opening hardware.
         family = config["motor"]["family"]
-        module = (
-            "motorfit.devices.diagnostics"
-            if family in {"myactuator", "hightorque", "hexfellow"}
-            else f"motorfit.devices.{family}.diagnostics"
-        )
-        inspect = import_module(module).inspect
+        inspect = import_module(f"motorfit.devices.{family}.diagnostics").inspect
         result = inspect(config, args.out)
         print(json.dumps(result["parameters"], indent=2))
         print(f"Saved parameter and CAN evidence: {args.out}")

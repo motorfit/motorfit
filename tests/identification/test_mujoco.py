@@ -133,7 +133,7 @@ def test_damiao_snapshot_replay_preserves_encoded_controller(tmp_path, log):
     trajectory = replay.rollout()
     assert np.isfinite(trajectory).all()
     np.testing.assert_array_equal(trajectory, replay.rollout())
-    snapshot["motor_spec"]["family"] = "hightorque"
+    snapshot["motor_spec"]["family"] = "unsupported"
     path.write_text(json.dumps(snapshot))
     with pytest.raises(ValueError, match="torque-MIT"):
         M1Parameters.load(path)

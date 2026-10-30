@@ -44,7 +44,7 @@ use the `motorfit` namespace. Optional replay does not require installing the
 Python-3.12-only core distribution into another Python version.
 
 Both adapters currently implement the supported M1 torque-MIT controller and
-pendulum equations. Recorded-effort models and other BAM families need their own
+pendulum equations. Other BAM families need their own
 physics integration. Newton's current adapter uses `SolverMuJoCo`; it is not an
 independent Featherstone validation. See [Validation](../guide/validation.md).
 

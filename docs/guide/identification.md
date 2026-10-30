@@ -20,9 +20,7 @@ uv run --frozen motorfit process \
 ```
 
 Keep original raw data alongside the processed inputs. Recordings in one fit must
-carry a consistent motor snapshot. For current/torque-command drivers, review
-[effort control](effort-control.md#input-timing-and-fitted-meaning): their discrete
-control inputs use zero-order hold at actual command transmission times.
+carry a consistent motor snapshot.
 
 ## Fit a candidate
 
@@ -66,8 +64,7 @@ to effective torque. Recorded quantized gains and encoded velocity/feedforward
 zeros are retained. Only the position goal receives the identified fractional
 delay; disabling torque is a separate event.
 
-Recorded-effort adapters instead replay the saved current/torque command. Neither
-path independently identifies winding resistance, electrical torque constant,
+This model does not independently identify winding resistance, electrical torque constant,
 current-loop dynamics or the calibration of a torque sensor.
 
 Parameter JSON includes a complete motor snapshot. Python callers should use

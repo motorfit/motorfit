@@ -5,7 +5,7 @@ description: Process recorded motor data, fit BAM M1–M6 candidates and select 
 
 # Identify motor dynamics
 
-Run commands from the MotorFit repository root. Read [the workflow](../../../docs/getting-started/workflow.md) and [BAM identification](../../../docs/guide/identification.md). For MyActuator, HighTorque or Hexfellow, also read the input-timing section of [Effort control](../../../docs/guide/effort-control.md).
+Run commands from the MotorFit repository root. Read [the workflow](../../../docs/getting-started/workflow.md) and [BAM identification](../../../docs/guide/identification.md).
 
 ## Establish the dataset
 
@@ -20,7 +20,7 @@ uv run --frozen motorfit process \
   --raw outputs/my-motor/raw/train --out outputs/my-motor/processed/train --dt 0.01
 ```
 
-`process` selects recorded-effort handling from the log. It holds encoded effort at command TX times while interpolating sensors. Do not replace commands with measured load or reconstruct them from tracking error. Torque-MIT logs instead replay the recorded controller law and quantized fields.
+Torque-MIT logs replay the recorded controller law and quantized fields. Do not replace commands with measured load.
 
 ## Fit and select
 

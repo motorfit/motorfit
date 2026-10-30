@@ -25,7 +25,8 @@ then use the same tools with a measured motor and fixture.
 | Inspect a completed experiment | [RS05 study](case-studies/rs05.md) |
 | Add a driver or change the project | [Architecture](development/architecture.md) · [Contributing](development/contributing.md) |
 
-The current version is **0.1.0**. The handbook is public; cloning the source
+The version menu selects the development handbook (`main`) or a published release.
+The package is currently **0.1.0**, unreleased. The handbook is public; cloning the source
 repository requires access. A [Chinese introduction](https://github.com/motorfit/motorfit/blob/main/README.zh-CN.md)
 is available in the repository.
 
@@ -43,7 +44,6 @@ Workflow <getting-started/workflow>
 
 Configuration <guide/configuration>
 Recording <guide/acquisition>
-Effort control <guide/effort-control>
 Identification <guide/identification>
 Validation <guide/validation>
 ```

@@ -12,9 +12,8 @@ Run commands from the MotorFit repository root. Start with [Configuration](../..
 - Identify the exact model and firmware, CAN channel and addresses, supply setting, measured fixture, excitation, gains, limits and sampling rate. Copy the matching setup from [configs/setups](../../../configs/setups) and adjust its referenced files. References resolve against the setup file, so preserve or update them when moving it.
 - Give this mounted device its own ignored coordinate file under `configs/local/`. Never copy another assembly's encoder offset or assume that a template contains a calibrated zero. Changing weights alone does not require recalibrating an unchanged mounting.
 - For RobStride and Damiao, follow [acquisition.md](../../../docs/guide/acquisition.md). Damiao runtime PMAX/VMAX/TMAX must match its profile.
-- For MyActuator, HighTorque and Hexfellow, follow [Effort control](../../../docs/guide/effort-control.md) before connecting. Resolve MyActuator's placeholder Nm/A scale and current limit; check HighTorque's exact feedback ID and externally configured drive timeout; match Hexfellow's 07/08 firmware and CAN-FD timing. These use host PD and recorded effort, with different feedback timing from onboard MIT control.
 
-When a required measurement or device setting is missing, prepare the configuration and ask for that specific input before dependent hardware work. Do not invent a fixture mass, zero, address or torque scale. Honor existing authorization; a setup-only request does not authorize enabling motion. Before recording, establish that the configured movement and physical assembly are ready. MyActuator recording also changes its persistent B3 timeout and releases its brake, as described in the effort guide.
+When a required measurement or device setting is missing, prepare the configuration and ask for that specific input before dependent hardware work. Do not invent a fixture mass, zero, address or torque scale. Honor existing authorization; a setup-only request does not authorize enabling motion. Before recording, establish that the configured movement and physical assembly are ready.
 
 ## Inspect, establish coordinates and record
 
@@ -44,7 +43,7 @@ Check `raw.json`, `samples.jsonl` and `frames.jsonl` for recording completion, f
 ## Maintenance sources
 
 - [CLI](../../../src/motorfit/cli.py) and [configuration loader](../../../src/motorfit/config.py): flags and path/coordinate behavior.
-- [MIT recorder](../../../src/motorfit/acquisition/recorder.py) and [effort recorder](../../../src/motorfit/acquisition/effort.py): timing, saved evidence and cleanup.
+- [MIT recorder](../../../src/motorfit/acquisition/recorder.py): timing, saved evidence and cleanup.
 - [Protocol references](../../../docs/reference/protocols.md): authoritative device-specific sources.
 
 Recheck the matching driver and guide when adding a motor family or changing acquisition behavior.

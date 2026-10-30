@@ -52,8 +52,7 @@ are absent; they are not evidence of GPU or hardware validation in ordinary CI.
 
 Keep tests focused on distinct failure modes. Test shared codecs with representative
 profiles and independent expected bytes; repeat by model or firmware only when the
-encoding or behavior differs. Run the complete fitting pipeline once per control
-source (MIT or recorded effort). Avoid duplicating an integration check with mocks
+encoding or behavior differs. Run the complete torque-MIT fitting pipeline once. Avoid duplicating an integration check with mocks
 or retesting upstream physics; retain failure cleanup and data-integrity checks.
 Prefer tests of complete user operations over individual helpers, property access,
 catalogue listings or every possible invalid argument. A new test should identify
@@ -106,16 +105,51 @@ runner and does not need a motor, GPU or initialized BAM submodule.
 Before committing, inspect `git diff --cached --stat` and `git diff --cached --check`.
 `git ls-files --cached --ignored --exclude-standard` should return no paths.
 
-After committing and pushing documentation changes, publish from the repository root:
+After committing and pushing documentation changes on `main`, publish from the repository root:
 
 ```bash
 bash scripts/publish_docs.sh
 ```
 
-The script makes a fresh build in a temporary environment, pushes the rendered
-files to `motorfit/motorfit.github.io`, and removes its temporary environment.
+The publisher builds the committed `main` branch in a temporary environment and
+updates `/main/` in `motorfit/motorfit.github.io`. The version menu sits beside
+the logo. The root `versions.json` lists only built versions, so older releases
+also discover newly published ones. Root bookmarks redirect to the same page
+under `/main/`, preserving query strings and anchors. Removed pages redirect to
+the handbook home; moved pages retain the redirects configured in `docs/conf.py`.
+
+### Release documentation
+
+The package remains unreleased at `0.1.0`; `main (dev)` is the only current entry.
+Do not create a release tag just to populate the menu. When preparing a release,
+update the package version and handbook, then create and push its matching
+`vX.Y.Z` Git tag. Publish that tag explicitly, for example:
+
+```bash
+bash scripts/publish_docs.sh v0.1.0
+```
+
+The script reads the tagged documentation and lockfile, verifies the tag against
+`pyproject.toml`, and creates `/v0.1.0/`. It refuses to overwrite an existing
+release. Publishing `main` leaves all release directories intact. The highest
+published release is labelled stable in the menu. There is no separate copy at
+`/stable/`; menu links always identify the exact release. Each version records
+its source commit in `source.json`. Documentation CI also builds `v*` tags, but
+publication remains a local maintainer operation.
+
+To review the complete versioned layout before pushing rendered files, use a
+new ignored output directory:
+
+```bash
+bash scripts/publish_docs.sh --output outputs/docs-site-preview
+python3 -m http.server 8000 --directory outputs/docs-site-preview
+```
+
+This builds committed sources without updating the public site. An ordinary
+`sphinx-build` preview also includes a local, single-entry version menu. Serve
+previews over HTTP so the browser can load the version manifest.
+
 GitHub Pages deploys the site repository's `main` branch. The source repository
 remains private; only rendered documentation and static assets are published.
-
 Publication uses the maintainer's existing local SSH access. The organization
 disables deploy keys, so the source CI has no cross-repository deployment secret.

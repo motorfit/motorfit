@@ -42,7 +42,7 @@ by recording or split, rather than using an average to hide a failing condition.
 ## Replay in a physics backend
 
 The included adapters implement **M1, torque-MIT control and the pendulum rig**.
-BAM fitting also supports M2–M6 and recorded-effort inputs, but these do not yet
+BAM fitting also supports M2–M6, but these do not yet
 have corresponding MuJoCo/Newton/mjlab replay adapters.
 
 ```bash

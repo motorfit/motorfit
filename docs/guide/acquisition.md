@@ -1,6 +1,6 @@
 # Recording
 
-This guide covers the native RobStride and Damiao SocketCAN adapters. For MyActuator, HighTorque and Hexfellow, use the [recorded-effort workflow](effort-control.md), which includes their setup templates and different input timing. See [bring your own motor](configuration.md) for another model or controller family, and [the workflow](../getting-started/workflow.md) for experiment design.
+This guide covers the native RobStride and Damiao SocketCAN adapters. See [bring your own motor](configuration.md) for another model or controller family, and [the workflow](../getting-started/workflow.md) for experiment design.
 
 Linux SocketCAN must already be configured for the actual interface and 1 Mbit/s bus. The supplied TOML files are templates. Set motor and feedback/host addresses, fixture, supply setting and a distinct coordinate file for the mounted device. `read` and `inspect` do not enable the motor. The pendulum-down convention is physical q=0 with encoder-positive direction.
 
@@ -22,4 +22,4 @@ It saves raw CAN frames, per-transaction samples and BAM JSON. Driver errors, mi
 
 ## Damiao
 
-Use `configs/setups/dm4310_pendulum.toml` with the same `read`, `inspect`, `zero`, `record` and `process` commands. The profile, 12-bit gain encoding, runtime range checks and status conventions are described in [motor support](../reference/motors.md#damiao-acquisition). MyActuator, HighTorque and Hexfellow use the same CLI with the settings in the [recorded-effort guide](effort-control.md).
+Use `configs/setups/dm4310_pendulum.toml` with the same `read`, `inspect`, `zero`, `record` and `process` commands. The profile, 12-bit gain encoding, runtime range checks and status conventions are described in [motor support](../reference/motors.md#damiao-acquisition).

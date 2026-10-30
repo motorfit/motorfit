@@ -13,10 +13,6 @@ from .trajectories import Trajectory
 
 def record(config: dict, output: Path, *, motor_factory=None) -> Path:
     spec = MotorSpec.from_dict(config["motor"])
-    if spec.recorded_effort:
-        from .effort import record as record_effort
-
-        return record_effort(config, output, motor_factory=motor_factory)
     motor_factory = motor_factory or driver(spec.family)
     device, recording = config["device"], config["recording"]
     zero = float(config["coordinate"]["zero_rad"])

@@ -80,9 +80,6 @@ Newton 与 mjlab 的安装见[可选环境](https://motorfit.github.io/reference
 | :--- | :--- |
 | [RobStride](configs/motors/robstride) | RS00–RS06 · 电机端 MIT 控制 |
 | [达妙 Damiao](configs/motors/damiao) | 16 个 MIT 型号配置，含 DM4310、DM4340 和 DM8009 |
-| [MyActuator](configs/motors/myactuator) | RMD-X V3 · 电流指令与上位机 PD |
-| [HighTorque](configs/motors/hightorque) | ht_can · 力矩指令与上位机 PD |
-| [Hexfellow](configs/motors/hexfellow) | CANopen 07 / 08 · CAN-FD 力矩指令与上位机 PD |
 
 ## 文档
 

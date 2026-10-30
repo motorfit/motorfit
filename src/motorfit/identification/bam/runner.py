@@ -84,10 +84,6 @@ def bam_tool(name: str, arguments: list[str]) -> None:
         for path in parameter_paths:
             if _read_spec(Path(path), "actuator") != spec:
                 raise ValueError(f"{path}: parameter motor snapshot differs from the logs")
-        if spec.recorded_effort and {"--sim-mujoco", "--sim-mjlab"}.intersection(arguments):
-            raise ValueError(
-                "Use BAM plot --sim for recorded-effort logs; simulator firmware-controller replay is MIT-only"
-            )
         register(spec)
 
         if name == "fit" and "--eval" in arguments:
@@ -142,6 +138,7 @@ def _raw_directory(raw: Path):
         raise ValueError(f"No raw.json recordings under {raw}")
     with tempfile.TemporaryDirectory(prefix="motorfit-process-") as temporary:
         for index, path in enumerate(files):
+            _read_spec(path, "motor")
             data = json.loads(path.read_text())
             if len(data["entries"]) < 2:
                 raise ValueError(f"{path}: resampling needs at least two samples")
@@ -155,13 +152,4 @@ def process(raw: Path, output: Path, dt: float) -> None:
         raise ValueError("dt must be positive and finite")
     output.mkdir(parents=True, exist_ok=True)
     with _raw_directory(raw) as temporary:
-        from .resample import resample_effort
-
-        for path in Path(temporary).glob("*.json"):
-            data = json.loads(path.read_text())
-            if data.get("control_source") == "recorded_effort":
-                processed = resample_effort(data, dt)
-                (output / path.name).write_text(json.dumps(processed, indent=2) + "\n")
-                path.unlink()
-        if list(Path(temporary).glob("*.json")):
-            _run("process", ["--raw", temporary, "--logdir", str(output), "--dt", str(dt)])
+        _run("process", ["--raw", temporary, "--logdir", str(output), "--dt", str(dt)])

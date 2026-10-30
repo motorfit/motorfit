@@ -9,10 +9,10 @@ Run commands from the MotorFit repository root. Read [validation.md](../../../do
 
 ## Choose the validation path
 
-- **Processed logs and a fitted model:** use BAM evaluation below. Motor snapshots must match. This supports M1–M6 and both torque-MIT and recorded-effort inputs.
+- **Processed logs and a fitted model:** use BAM evaluation below. Motor snapshots must match. This supports M1–M6 and torque-MIT inputs.
 - **A dataset manifest with saved references:** first run `motorfit verify --dataset <manifest>`. Resolve its paths relative to the manifest and check hashes and split counts. The manifest must reference the intended fixed model; do not rewrite hashes to conceal a mismatch.
 - **Bundled offline example:** `motorfit demo` verifies the manifest, reproduces saved BAM predictions and writes a headless comparison. For a new study, a manifest indexes prepared data and predictions; no CLI automatically creates a complete study or reference predictions.
-- **Physics replay:** the current adapters support M1, torque-MIT control and the implemented pendulum dynamics. Check the model snapshot and rig before selecting a backend. M2–M6, recorded-effort models and other rigs require additional physics integration. Complete applicable BAM checks and state the unsupported part; do not silently substitute M1 or a different controller.
+- **Physics replay:** the current adapters support M1, torque-MIT control and the implemented pendulum dynamics. Check the model snapshot and rig before selecting a backend. M2–M6 and other rigs require additional physics integration. Complete applicable BAM checks and state the unsupported part; do not silently substitute M1 or a different controller.
 
 For an existing processed evaluation split, set paths to the user's fixed artifacts:
 

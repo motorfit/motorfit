@@ -1,7 +1,7 @@
 # Workflow
 
 A study connects a mounted motor, its controller, a measured fixture and a declared
-set of recordings. MotorFit supports five driver families, two control-input paths
+set of recordings. MotorFit supports RobStride and Damiao torque-MIT control
 and a pendulum rig. [Motor support](../reference/motors.md) describes the available
 protocols and their validation coverage.
 
