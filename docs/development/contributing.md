@@ -52,8 +52,9 @@ are absent; they are not evidence of GPU or hardware validation in ordinary CI.
 
 Keep tests focused on distinct failure modes. Test shared codecs with representative
 profiles and independent expected bytes; repeat by model or firmware only when the
-encoding or behavior differs. Run the complete torque-MIT fitting pipeline once. Avoid duplicating an integration check with mocks
-or retesting upstream physics; retain failure cleanup and data-integrity checks.
+encoding or behavior differs. Run the complete torque-MIT fitting pipeline once.
+Avoid duplicating an integration check with mocks or retesting upstream physics;
+retain failure cleanup and data-integrity checks.
 Prefer tests of complete user operations over individual helpers, property access,
 catalogue listings or every possible invalid argument. A new test should identify
 a concrete regression that the existing workflow checks would miss.
@@ -79,6 +80,24 @@ Keep commands in the user guides authoritative. README files provide a short
 introduction and quickstart, and link to the handbook for details; update their
 English and Chinese commands together. Keep reusable guidance separate from
 RS05-specific settings and measurements. New technical pages use English.
+
+### Write and verify a page
+
+Start a guide with the task, required inputs and expected result. Use one consistent
+set of paths through related guides. After each command, explain what the user
+should see, what to inspect and when to continue. Keep exhaustive field and option
+lists in reference pages; link to them from the step that needs them.
+
+Check behavior against the current implementation. Run offline examples and
+verify their output names, units and reported values. Distinguish a reproducibility
+check from accuracy on measured motion, and distinguish software tests from
+hardware evidence. Commands that require the full RS05 archive must say so before
+the command block.
+
+Before publishing, build with warnings treated as errors and inspect the rendered
+pages. Check formulas, tables, navigation, local links, search and narrow layouts.
+A successful build catches structural problems; it does not establish technical
+accuracy. Record any example that could not be executed and the missing input.
 
 ## Preview the handbook
 

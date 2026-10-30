@@ -1,74 +1,116 @@
-# Identification
+# Fit a model
 
-MotorFit uses the pinned, unchanged [Rhoban BAM](https://github.com/Rhoban/bam)
-submodule for M1–M6 actuator models, resampling, simulation and optimization.
-Local adapters supply the controller law, recorded inputs and measured fixture.
+Start with reviewed recordings arranged under `data/my-motor/raw/train/` and
+`data/my-motor/raw/validation/`. This guide resamples them, fits an M1 candidate,
+and evaluates it before choosing a final model. No hardware is used.
 
-Before fitting, finish the [experiment plan](../getting-started/workflow.md),
-check recording completion and keep training, validation and final-test runs separate.
-
-## Process recordings
-
-Process each split independently. Choose `dt` from the recorded timing and the
-bandwidth needed for the study:
+## 1. Process each split
 
 ```bash
-uv run --frozen motorfit process \
+uv run --no-sync motorfit process \
   --raw data/my-motor/raw/train --out data/my-motor/processed/train --dt 0.01
-uv run --frozen motorfit process \
+uv run --no-sync motorfit process \
   --raw data/my-motor/raw/validation --out data/my-motor/processed/validation --dt 0.01
 ```
 
-Keep original raw data alongside the processed inputs. Recordings in one fit must
-carry a consistent motor snapshot.
+`--dt` is the processed sample interval in seconds; `0.01` gives 100 Hz. Choose it
+from the measured timing and motion bandwidth. A smaller interval interpolates
+more points but does not create new measurements.
 
-## Fit a candidate
+`process` finds nested `raw.json` files and writes a flat directory of processed
+JSON logs. It retains the recording metadata and linearly interpolates numeric
+sample fields. The torque-enable field is interpolated and thresholded at 0.5;
+its transition time is therefore approximate. Keep the raw capture for precise
+release-event analysis.
+
+Use a new or empty processed directory when changing the run selection or timestep:
+old files are not removed automatically. Keep inspection JSON and summaries out of
+these directories; `fit` treats every top-level `.json` as a recording.
+
+## 2. Check the training inputs
+
+All logs in a fit must have the same complete `motor_spec` and the same `dt`.
+Loads and controller gains can differ and are read from each recording.
+
+**The batch fitter uses only as many samples as the shortest training log.**
+Keep training durations consistent or deliberately prepare matched windows.
+A long recording mixed with short recordings does not contribute its extra tail
+to the fit. Later `--eval` runs evaluate the full individual logs.
+
+## 3. Fit the first candidate
 
 ```bash
-uv run --frozen motorfit fit \
+mkdir -p data/my-motor/candidates data/my-motor/selected data/my-motor/results
+uv run --no-sync motorfit fit \
   --logdir data/my-motor/processed/train --model m1 --trials 1000 \
-  --output data/my-motor/candidates/m1.json
+  --output data/my-motor/candidates/m1-run01.json
 ```
 
-This fits only the supplied directory. The trial count is an example budget;
-compare candidate families and repeated runs on the declared validation data.
-Record seeds, options and the selection rule. `motorfit fit --help` lists the
-supported fitting flags. Choose a new output path rather than overwriting a
-selected model or the bundled fixture.
+The optimizer minimizes position mean absolute error. It periodically saves the
+best candidate and prints its score in radians. The final JSON includes:
+
+- The model family and fitted parameters.
+- The complete motor specification copied from the recordings.
+- `identification.training_mae_rad`, the best training score.
+
+The parent output directory must already exist. Use a fresh filename: fitting
+opens the specified file for writing. If interrupted after a completed trial,
+MotorFit saves the best completed candidate.
+
+A budget of 1,000 trials is a starting example, not a convergence guarantee. Repeat
+fits and check whether validation error and parameters are stable. The current CLI
+does not expose an optimizer-seed option; save the source revision, input selection,
+arguments and each output when comparing runs.
 
 ## Evaluate and inspect
 
 ```bash
-uv run --frozen motorfit fit \
+uv run --no-sync motorfit fit \
   --logdir data/my-motor/processed/validation --eval \
-  --output data/my-motor/candidates/m1.json
-uv run --frozen motorfit plot \
+  --output data/my-motor/candidates/m1-run01.json
+uv run --no-sync motorfit plot \
   --logdir data/my-motor/processed/validation --sim \
-  --params data/my-motor/candidates/m1.json
+  --params data/my-motor/candidates/m1-run01.json
 ```
 
-Evaluation loads the fixed candidate. Inspect residuals across trajectories,
-loads and gains before selecting it. Freeze the selected parameter file and input
-hashes, then evaluate independent final-test recordings using [Validation](validation.md).
+With `--eval`, `--output` names the existing model to **read**. No fitting occurs.
+The printed `Score` is the mean of the position MAEs calculated separately for
+each complete log; every log has equal weight. `plot --sim` opens Matplotlib plots
+with BAM predictions overlaid on the measurements.
 
-## Interpret the model
+Inspect reversals, fast motion, release and final settling. Two models with similar
+average error can behave very differently in those windows.
 
-For torque-MIT recordings, the nominal command law is:
+## Compare model families
 
-```text
-Kp * (delayed_goal - q) + Kd * (goal_speed - dq) + feedforward
+[Parameters](../reference/parameters.md#model-families) describes M1–M6. To test an
+additional friction model, repeat the fit with a different `--model` and output
+filename, then evaluate it on the **same** validation recordings. For example:
+
+```bash
+uv run --no-sync motorfit fit \
+  --logdir data/my-motor/processed/train --model m2 --trials 1000 \
+  --output data/my-motor/candidates/m2-run01.json
+uv run --no-sync motorfit plot \
+  --logdir data/my-motor/processed/validation --sim \
+  --params data/my-motor/candidates/m1-run01.json data/my-motor/candidates/m2-run01.json
 ```
 
-The nominal output is clamped to the protocol torque range; `torque_ratio` maps it
-to effective torque. Recorded quantized gains and encoded velocity/feedforward
-zeros are retained. Only the position goal receives the identified fractional
-delay; disabling torque is a separate event.
+Prefer the simpler model when the additional terms do not improve the validation
+behaviors that matter. A parameter repeatedly reaching its search bound calls for
+checking units, fixture properties and data coverage before changing that bound.
 
-This model does not independently identify winding resistance, electrical torque constant,
-current-loop dynamics or the calibration of a torque sensor.
+If a parameter has been measured independently, `--set` can hold it fixed. The
+[command reference](../reference/commands.md#fitting-options) gives the syntax.
 
-Parameter JSON includes a complete motor snapshot. Python callers should use
-`motorfit.identification.bam.load_model(path)` so a later TOML edit cannot reinterpret
-a saved model. The [RS05 study](../case-studies/rs05.md) documents one completed
-selection and its limitations; its three-record fixture is an installation sample,
-not enough data to reproduce the full model-selection study.
+## Save the selected model
+
+After comparing candidates, copy the chosen file to a stable study location:
+
+```bash
+cp data/my-motor/candidates/m1-run01.json data/my-motor/selected/model.json
+```
+
+Use the actual chosen candidate if it differs. Record the selection reason and
+validation scores beside it. Continue with [Evaluate the model](validation.md)
+using the final-test recordings.

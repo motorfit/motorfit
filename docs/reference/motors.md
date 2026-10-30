@@ -1,47 +1,79 @@
-# Motor support
+# Supported motors
 
-MotorFit implements native SocketCAN acquisition for **RobStride and Damiao**, with saved command/feedback evidence and adapters for BAM identification.
+MotorFit records **RobStride and Damiao** motors through Linux SocketCAN. Choose a
+profile matching both the motor model and its firmware protocol, then use it in a
+[bench setup](../guide/configuration.md).
 
-## Native support
+| Family | Supported protocol | Starting setup |
+|---|---|---|
+| RobStride | Manufacturer private protocol over extended CAN | `configs/setups/rs05_pendulum.toml` |
+| Damiao | MIT control over standard CAN | `configs/setups/dm4310_pendulum.toml` |
 
-| Family | Shipped profile identifiers | Acquisition → BAM | Hardware evidence |
-|---|---|---|---|
-| RobStride | `rs00`, `rs01`, `rs02`, `rs03`, `rs04`, `rs05`, `rs06` | Implemented for private extended CAN | RS05 reference study; other profiles unverified on hardware |
-| Damiao | `3507`, `4310`, `4310p`, `4340`, `4340p`, `4340_v20`, `6006`, `8006`, `8009`, `10010l`, `10010`, `h3510`, `g6215`, `h6220`, `jh11`, `6248p` | Implemented for MIT over SocketCAN | Offline protocol and pipeline tests only |
+Both drivers support feedback reading, register inspection, software-zero capture
+and trajectory recording. Their recordings use the same fitting workflow.
 
-The Damiao identifiers correspond to DM3507, DM4310, DM4310P, DM4340, DM4340P, DM4340X, DM6006, DM8006, DM8009, DM10010L, DM10010, H3510, G6215, H6220, JH11 and 6248P. Profile `4340_v20` is the existing identifier for the **4340X** template; do not substitute the standard 4340 mapping.
+## RobStride profiles
 
-Profiles define protocol encoding ranges, not rated continuous torque, commissioned limits or identified physical parameters. Match the actual model and firmware, measure the fixture, and identify each mounted device. Both families use classic CAN. Serial/DM_Device bridges and alternative RobStride CiA402/MIT firmware protocols are not implemented here.
+The `configs/motors/robstride/` directory contains:
+
+| Models | Profile files |
+|---|---|
+| RS00, RS01, RS02 | `rs00.toml`, `rs01.toml`, `rs02.toml` |
+| RS03, RS04 | `rs03.toml`, `rs04.toml` |
+| RS05, RS06 | `rs05.toml`, `rs06.toml` |
+
+For example, an RS06 setup uses `../motors/robstride/rs06.toml` when the setup is
+under `configs/local/`. Each model has its own position, velocity, torque and gain
+encoding ranges. Do not substitute the RS05 profile merely because the wire format
+is shared.
+
+The RobStride driver targets the private extended-CAN protocol. Alternative
+CANopen or MIT firmware layouts require a different adapter.
+
+## Damiao profiles
+
+Profiles live in `configs/motors/damiao/`:
+
+| Model | Profile |
+|---|---|
+| DM3507 | `3507.toml` |
+| DM4310 / DM4310P | `4310.toml` / `4310p.toml` |
+| DM4340 / DM4340P | `4340.toml` / `4340p.toml` |
+| DM4340X | `4340_v20.toml` |
+| DM6006 | `6006.toml` |
+| DM8006 / DM8009 | `8006.toml` / `8009.toml` |
+| DM10010L / DM10010 | `10010l.toml` / `10010.toml` |
+| H3510 / G6215 / H6220 | `h3510.toml` / `g6215.toml` / `h6220.toml` |
+| JH11 / 6248P | `jh11.toml` / `6248p.toml` |
+
+`4340_v20` is the repository's profile name for **DM4340X**. It is distinct from
+the standard DM4340 profile. Before enabling, the driver checks the device's PMAX,
+VMAX and TMAX against the selected profile.
+
+Serial bridges and the DM_Device SDK transport are not implemented. Use a
+SocketCAN-compatible adapter.
+
+## What a profile contains
+
+A profile stores the model name, family and command-encoding ranges in SI units.
+These ranges describe the protocol; they are not identified friction, inertia or
+rated continuous-torque values. Physical parameters come from an experiment and
+are saved separately in `model.json`.
+
+List the installed profiles and validation coverage with:
 
 ```bash
-uv run --frozen motorfit motors
-uv run --frozen motorfit motors --json
+uv run --no-sync motorfit motors
+uv run --no-sync motorfit motors --json
 ```
 
-## Damiao acquisition
+## Validation coverage
 
-Copy [`dm4310_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/dm4310_pendulum.toml) in the same directory. Select a profile from [`configs/motors/damiao`](https://github.com/motorfit/motorfit/tree/main/configs/motors/damiao), then set the actual fixture, supply, CAN address, feedback address and trajectory. The example gains and fixture are placeholders for a measured assembly.
+**RS05 has recorded hardware evidence** in [the reference study](../case-studies/rs05.md).
+The other RobStride profiles and all Damiao profiles require commissioning on the
+actual unit. Software tests check protocol encoding, response matching, startup
+checks, error cleanup and the offline fitting path; they do not establish accuracy
+on every motor listed above.
 
-```bash
-uv run --frozen motorfit inspect --setup configs/setups/dm4310_pendulum.toml \
-  --out outputs/dm4310-inspection.json
-uv run --frozen motorfit zero --setup configs/setups/dm4310_pendulum.toml --angle 0
-uv run --frozen motorfit record --setup configs/setups/dm4310_pendulum.toml \
-  --out outputs/dm4310-run
-uv run --frozen motorfit process --raw outputs/dm4310-run \
-  --out outputs/dm4310-processed --dt 0.01
-```
-
-`zero` assumes the pendulum has been placed at the given physical angle. It stores a software offset. `record` executes motion. Follow [identification](../guide/identification.md) to collect multiple runs, separate train/validation/test data, and fit the recorded model. The RS05 frozen parameters must not be reused as identified Damiao parameters.
-
-Before enabling, the driver stops the motor and checks **PMAX/VMAX/TMAX** against the profile. A mismatch aborts. It verifies MIT mode and watchdog register writes through acknowledgements and readbacks. The driver writes the TIMEOUT register as `round(watchdog_ms × 20)` ticks. No firmware zero, fault-clear or persistent-save command is issued.
-
-Position uses 16-bit encoding; velocity, torque, Kp and Kd use 12 bits. The recorded `*_encoded`, `goal_speed` and `feedforward_torque` values preserve their quantized values, including nonzero representations of nominal zero. BAM uses these values. Wire status is retained as `status_code`; `mode` is normalized to 0=disabled, 2=enabled. `load` is nominal protocol torque in Nm, not an independently calibrated torque measurement.
-
-Each transaction drains queued frames, logs all frames and accepts only the configured feedback CAN ID and motor nibble. A fault, unexpected enable state or missing response aborts recording and attempts disable. As in RobStride, the protocol has no sequence number; this does not prove that a delayed packet cannot arrive after a new request. The host sampling timestamp is reception time, not a motor-side measurement clock.
-
-## Sources and validation
-
-See the [manufacturer protocol references](protocols.md) for framing, register access and firmware control modes. The source links in the profiles point to protocol documentation. Profile numbers are encoding templates and must be checked against the mounted device; they are not identified parameters or evidence of hardware validation. RS01/02/05/06 keep their existing pinned manuals and 16-bit codec. RS00/03/04 retain their current mapping ranges and model-specific gain limits, pending firmware/hardware verification.
-
-Tests exercise RobStride and Damiao frame packing, addressing, register readback, range mismatch, missing replies, fault/disable handling, interruption and the full offline BAM process/fit/load path. Only RS05 has recorded hardware validation; the remaining profiles require commissioning on the mounted device.
+Continue with [Setup](../guide/configuration.md) to configure a mounted device.
+For wire formats, register behavior and manufacturer sources, see [Protocols](protocols.md).

@@ -1,15 +1,14 @@
-# Quickstart
+# Run the offline example
 
-Start with three complete RS05 recordings and their frozen M1 model. This example
-verifies installation, reproduces the saved predictions, and writes comparison
-plots and metrics. No motor, CAN connection or GPU is needed. The data lives once
-in `tests/fixtures/offline/`, shared with the regression tests.
+This tutorial checks your installation and shows what a fitted model can predict.
+You will replay three measured RS05 trajectories, produce a comparison plot, and
+read the error for each recording. Everything runs on the CPU, without a motor.
 
-## Install
+## 1. Install MotorFit
 
-Use **Python 3.12** and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-The source repository is private, so your GitHub account needs access and a working
-SSH key.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use
+**Python 3.12**. The following commands require GitHub access to the private source
+repository and an SSH key configured for that account.
 
 ```bash
 git clone --recurse-submodules git@github.com:motorfit/motorfit.git
@@ -17,75 +16,97 @@ cd motorfit
 uv sync --frozen
 ```
 
-For an existing checkout, initialize the pinned BAM dependency with
-`git submodule update --init --recursive` before installing. Keep the committed
-`uv.lock`; it records the tested core environment.
+For an existing checkout, run `git submodule update --init --recursive` before
+`uv sync --frozen`. This initializes BAM at the revision recorded by MotorFit.
 
-## Reproduce the frozen model
+Run the remaining commands from the repository root. `uv run --no-sync` uses the
+environment just installed, including any optional dependencies you add later.
 
-Choose a new output directory:
+## 2. Replay the saved model
 
 ```bash
-uv run --frozen motorfit demo \
-  --dataset tests/fixtures/offline/manifest.json --output outputs/demo
+uv run --no-sync motorfit demo \
+  --dataset tests/fixtures/offline/manifest.json \
+  --output outputs/demo
 ```
 
-The command verifies the model and dataset hashes, replays all three recordings
-with BAM, and checks agreement with their saved reference trajectories. The output
-contains `comparison.png`, `metrics.csv`, `summary.json` and three prediction
-`.npz` files. `summary.json` records the hash checks and comparison results.
+The command checks the input hashes, loads the saved M1 parameters, and simulates
+each complete recording with BAM. It does **not** fit new parameters. A successful
+run ends with:
 
-The example preserves one recording per load, the original split labels, the raw
-and processed data, and the frozen model. The whole `tests/fixtures/offline/` directory
-can be copied elsewhere. When running outside the repository, pass absolute paths
-to the manifest and output directory.
+```text
+PASS: 3 complete recordings; frozen references reproduced. outputs/demo
+```
 
-## Measured motion and model prediction
+Use a new output directory when repeating the example, such as `outputs/demo-02`.
 
-This figure shows the complete 100 g frequency-sweep recording from the example's
-gain-validation split, with its frozen BAM M1 prediction and position residual.
-It was selected to illustrate a frequency sweep; the demo evaluates all three
-recordings.
+## 3. Read the results
+
+Open `outputs/demo/comparison.png`. Each panel overlays measured position with
+the model prediction for one load. The other files are:
+
+| File | What to inspect |
+|---|---|
+| `metrics.csv` | Position MAE and RMSE for each recording, in radians |
+| `summary.json` | Input checks, model identity and the same metrics |
+| One `.npz` per recording | Timestamps, measurements and predicted trajectories |
+
+With the bundled inputs, the position errors are approximately:
+
+| Weight | Motion | MAE | RMSE |
+|---|---|---:|---:|
+| 100 g | Frequency sweep | 1.607 mrad | 2.089 mrad |
+| 200 g | Lift and release | 5.327 mrad | 5.944 mrad |
+| 500 g | Combined sinusoids | 1.219 mrad | 1.551 mrad |
+
+One milliradian is `0.001 rad`, about `0.057°`. MAE is the mean absolute position
+error; RMSE puts more weight on large errors.
+
+The 100 g recording is shown below. The upper plot compares position; the lower
+plot shows prediction minus measurement, so small errors remain visible.
 
 ```{image} ../images/identification.png
-:alt: Complete measured RS05 trajectory, frozen M1 prediction and position residual over 20 seconds.
+:alt: Measured and predicted position for the full 100 g RS05 sweep, with position error below.
 :class: only-light
 ```
 
 ```{image} ../images/identification-dark.png
-:alt: Complete measured RS05 trajectory, frozen M1 prediction and position residual over 20 seconds.
+:alt: Measured and predicted position for the full 100 g RS05 sweep, with position error below.
 :class: only-dark
 ```
 
-## Try processing and fitting
+`PASS` means that the saved predictions were reproduced. It does not mean that
+prediction error is zero: the 200 g release has a larger residual, discussed in
+[RS05 results](../case-studies/rs05-findings.md).
 
-```bash
-uv run --frozen motorfit process \
-  --raw tests/fixtures/offline/raw --out outputs/processed --dt 0.01
-uv run --frozen motorfit fit \
-  --logdir outputs/processed --model m1 --trials 20 --output outputs/demo-fit.json
-```
+## 4. Try a physics replay
 
-This short fit demonstrates the API. It does not reproduce formal model selection
-or establish an independent test result. Keep the bundled frozen model unchanged;
-follow [the identification guide](../guide/identification.md) for a new study with
-declared training, validation and final-test recordings.
-
-## Replay in MuJoCo
+To run the same model through the included MuJoCo adapter:
 
 ```bash
 uv sync --frozen --extra simulation
-uv run --frozen --extra simulation motorfit replay \
-  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
-  --dt 0.002 --output outputs/mujoco
+uv run --no-sync motorfit replay \
+  --dataset tests/fixtures/offline/manifest.json \
+  --engine mujoco --dt 0.002 --output outputs/mujoco
 ```
 
-This uses the identification-equivalent pendulum fixture. See
-[validation](../guide/validation.md) for the supported M1 controller and rig, and
-[environments](../reference/backends.md) for Newton and mjlab.
+Read `outputs/mujoco/metrics.csv`. `position_mae_rad` compares MuJoCo with the
+measurement; `delta_bam_position_mae_rad` compares MuJoCo with BAM. These answer
+different questions. The [evaluation guide](../guide/validation.md#replay-in-a-physics-backend)
+explains the files and comparison settings.
 
-## Next steps
+## Where to go next
 
-- [Plan a complete experiment](workflow.md) with separate training and evaluation data.
-- [Configure your motor](../guide/configuration.md) and [collect recordings](../guide/acquisition.md).
-- [Read the RS05 study](../case-studies/rs05.md) for the full experiment and its limitations.
+To identify a motor, begin with the [experiment workflow](workflow.md). The three
+example records are a demonstration subset, not a training dataset for a new
+motor. The complete [RS05 study](../case-studies/rs05.md) used 111 recordings.
+
+If installation or the example fails:
+
+| Symptom | Action |
+|---|---|
+| GitHub reports `Permission denied (publickey)` | Check repository access and your GitHub SSH key |
+| BAM source is missing | Run `git submodule update --init --recursive`, then sync again |
+| Output directory already exists | Select a new `--output` path |
+| A SHA-256 check fails | Restore the bundled fixture from Git; it has been changed or is incomplete |
+| MuJoCo cannot be imported | Run `uv sync --frozen --extra simulation`, then use `uv run --no-sync` |

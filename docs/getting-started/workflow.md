@@ -1,61 +1,82 @@
-# Workflow
+# Plan an identification experiment
 
-A study connects a mounted motor, its controller, a measured fixture and a declared
-set of recordings. MotorFit supports RobStride and Damiao torque-MIT control
-and a pendulum rig. [Motor support](../reference/motors.md) describes the available
-protocols and their validation coverage.
+A useful model must predict motion beyond the recordings used to fit it. Plan the
+loads, trajectories and evaluation conditions before collecting data, then keep
+those choices with the results.
 
-## Plan the experiment
+This workflow identifies one mounted motor at a time. A new unit, changed gearbox
+or substantially different operating range needs its own measurements.
 
-Record the motor identity, controller mode and units, supply setting, coordinate
-convention, fixture geometry and measured masses. Choose loads, gains, trajectories
-and durations that cover the intended use. A longer run alone does not establish
-accuracy; use independent conditions and repetitions.
+## Decide what the model must reproduce
 
-Assign recordings to **training**, **model-selection validation** and **final test**
-before fitting. Samples from the same trajectory are not independent experiments.
-Keep those split assignments with the data.
+Write down the expected range of joint angle, speed, load and controller gains.
+Choose an error measure relevant to the task: tracking MAE, peak error, settling
+position or release behavior. Use that same definition when comparing candidates.
 
-## Keep the study together
+Start with M1, which estimates torque scaling, added inertia, command delay,
+coordinate offset and Coulomb/viscous friction. [Parameters](../reference/parameters.md)
+explains these terms and the extra friction terms in M2–M6.
 
-Use an ignored local directory such as:
+## Choose motions and loads
 
-```text
-data/my-motor/
-  raw/train/             # completed recordings and their original evidence
-  raw/validation/
-  raw/test/
-  processed/             # the same split structure after resampling
-  candidates/            # fitted models and selection records
-  results/               # fixed-model evaluations, plots and reports
+The experiment needs more than one kind of motion:
+
+| Motion or change | What it helps reveal |
+|---|---|
+| Slow motion and reversals | Friction near zero speed and residual position bias |
+| A frequency sweep | Tracking over different speeds and accelerations |
+| A different known load | Whether torque scaling and inertia explain changed dynamics |
+| Different gains | Whether the fitted model generalizes beyond one controller setting |
+| Lift and release | Passive motion and stopping after torque is disabled |
+
+Use [the trajectory reference](../reference/trajectories.md) to choose actual
+command names and understand amplitude and time scaling. Measure fixture masses
+and inertia separately: a wrong fixture model can be absorbed into fitted motor
+parameters.
+
+## Separate the recordings
+
+Assign complete runs to three groups:
+
+- **Training:** the optimizer uses these to choose parameters.
+- **Validation:** use these to choose model family, trial budget and other fitting choices.
+- **Final test:** evaluate the selected model after those choices are fixed.
+
+Hold out conditions that matter to the intended use, such as an unseen load or
+gain. Keep repeated samples from the same recording together. Repeated runs also
+show whether differences between models exceed ordinary experiment variation.
+
+Use the same planned duration for training runs: the current BAM batch fitter
+truncates every training log to the shortest one. All training logs must also use
+the same processed timestep. Evaluation can use each complete recording.
+
+## Keep the study in one place
+
+```bash
+mkdir -p data/my-motor/raw/{pilot,train,validation,test,failed}
+mkdir -p data/my-motor/{processed,candidates,selected,results}
 ```
 
-Save the configuration, input hashes and runtime versions with the study. Keep
-failed runs and their evidence too. Use `outputs/` for disposable demonstrations
-or build products.
+Use descriptive run directories, for example
+`raw/train/100g-sweep-r01/`. Each contains a complete capture and its configuration
+snapshot. Keep a run list with the motor identity, load, gains, trajectory, repeat
+and assigned split. The directory arrangement does not automatically add split
+labels to the JSON files.
 
-## Follow the stages
+Pilot runs establish working settings. Move failed runs outside directories sent
+to `process`; keep their evidence for diagnosis. The data-format reference explains
+[which files are produced](../reference/data.md).
 
-| Stage | Outcome | Guide |
+## Complete the stages
+
+| Stage | Finish when… | Continue with |
 |---|---|---|
-| Configure | Model profile, measured fixture and per-device coordinate | [Configuration](../guide/configuration.md) |
-| Record | Commands, feedback, timestamps and configuration snapshots | [Recording](../guide/acquisition.md) |
-| Process and fit | Candidate parameters from the training recordings | [Identification](../guide/identification.md) |
-| Select | A fixed model chosen on validation data | [Identification](../guide/identification.md#evaluate-and-inspect) |
-| Evaluate | Final-test errors and supported simulator comparisons | [Validation](../guide/validation.md) |
+| Setup | Device addresses, measured fixture and chosen motion settings are recorded | [Set up the bench](../guide/configuration.md) |
+| Recording | Runs have valid feedback, a consistent coordinate and acceptable timing | [Record motion](../guide/acquisition.md) |
+| Fitting | Candidate models are saved with training scores | [Fit a model](../guide/identification.md) |
+| Selection | A candidate explains validation runs and important residuals | [Compare candidates](../guide/identification.md#evaluate-and-inspect) |
+| Final evaluation | Errors are reported for untouched test runs | [Evaluate the model](../guide/validation.md) |
 
-Review completion, faults and timing before processing. In RobStride recordings,
-`load` is firmware-reported nominal torque, not a shaft torque sensor. Preserve
-independent wire captures when the study requires a separate timing audit.
-
-## Freeze and report
-
-Freeze the selected parameter file, split list, input hashes, controller and
-fixture definitions, software versions and selection rule before final evaluation.
-A later parameter or selection change starts a new study.
-
-Report agreement with measurements separately from agreement between simulators.
-Include the operating conditions, per-record errors and remaining unexplained
-behavior. The [RS05 study](../case-studies/rs05.md) is a worked example with a
-portable manifest and saved predictions. A manifest indexes prepared data; there
-is no command that automatically designs the split or creates a complete study.
+Keep the selected model, run list, settings and software revision together. If you
+use test results to change the model, those records have become development data;
+collect new independent runs for the next final evaluation.

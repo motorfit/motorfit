@@ -28,7 +28,7 @@ MotorFit extends [Rhoban BAM](https://github.com/Rhoban/bam) with native motor d
 
 ## Highlights
 
-- **Record with native drivers.** Five motor families, raw CAN frames, timestamped feedback and a saved experiment configuration.
+- **Record with native drivers.** RobStride and Damiao motors, raw CAN frames, timestamped feedback and a saved experiment configuration.
 - **Identify with BAM.** M1–M6 friction models, parameter fitting, evaluation on held-out recordings and reloadable model snapshots.
 - **Validate against motion.** Compare measurements with model predictions, then replay supported M1 models in MuJoCo, Newton or mjlab.
 
@@ -40,32 +40,25 @@ Requires **Python 3.12** and [uv](https://docs.astral.sh/uv/getting-started/inst
 git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
-uv run --frozen motorfit demo \
+uv run --no-sync motorfit demo \
   --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
 This checks three complete recordings against a frozen model and writes a comparison plot, metrics and predicted trajectories to `outputs/demo/`. The repository is private; cloning requires access. MotorFit is unreleased at version 0.1.0.
 
-<details>
-<summary><strong>Try processing and fitting the example data</strong></summary>
-
-```bash
-uv run --frozen motorfit process \
-  --raw tests/fixtures/offline/raw --out outputs/processed --dt 0.01
-uv run --frozen motorfit fit \
-  --logdir outputs/processed --model m1 --trials 20 --output outputs/demo-fit.json
-```
-
-This small fit demonstrates the API. It does not reproduce the formal study's model selection. See the [identification guide](https://motorfit.github.io/guide/identification.html) for training, validation and evaluation.
-
-</details>
+A successful run prints `PASS: 3 complete recordings; frozen references reproduced.`
+Open `outputs/demo/comparison.png` and `metrics.csv` to inspect prediction error.
+The [quickstart](https://motorfit.github.io/main/getting-started/quickstart.html)
+explains each output and the expected values. This command replays a saved model;
+start with the [experiment workflow](https://motorfit.github.io/main/getting-started/workflow.html)
+to collect data and fit your own.
 
 <details>
 <summary><strong>Replay the example in MuJoCo</strong></summary>
 
 ```bash
 uv sync --frozen --extra simulation
-uv run --frozen --extra simulation motorfit replay \
+uv run --no-sync motorfit replay \
   --dataset tests/fixtures/offline/manifest.json --engine mujoco \
   --dt 0.002 --output outputs/mujoco
 ```

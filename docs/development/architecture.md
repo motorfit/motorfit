@@ -1,52 +1,100 @@
 # Architecture
 
-MotorFit organizes the workflow around motor, controller, fixture and dataset boundaries. RS05-specific evidence lives in a [reference study](../case-studies/rs05.md).
+MotorFit connects bench acquisition to BAM identification and physics replay. The
+main boundary is the saved recording: fitting reads its motor and fixture snapshot
+without opening CAN or consulting a mounted device's current configuration.
 
-The reusable device unit is a protocol family; the configuration unit is a motor model; the calibrated unit is a mounted device. RS00–RS06 share one RobStride driver; Damiao MIT uses a separate native driver.
+## Data flow
 
-| Directory | Responsibility |
+```text
+Setup TOML → native driver + trajectory → raw recording
+                                             ↓ process
+                                      uniform-grid logs
+                                             ↓ fit
+                                        model.json
+                                             ↓ evaluate
+                                  predictions and errors
+```
+
+Physics replay adds a packaging step: a dataset manifest names the model,
+recordings and saved BAM predictions with relative paths and hashes. See
+[Data formats](../reference/data.md) for the two input formats and their fields.
+
+## Code map
+
+Paths below are relative to `src/motorfit/`.
+
+| Module | Responsibility |
 |---|---|
-| `src/motorfit/devices/` | Native protocols, backend selection and supported-model catalogue |
-| `acquisition` | Generic Python recorder, trajectories, formal CSV-to-BAM export |
-| `identification/bam` | Torque-MIT adapter and unchanged upstream BAM integration |
-| `identification/{mujoco,newton,mjlab}.py` | Frozen M1 replay on optional backends |
-| `rigs` | Recorded pendulum geometry and CAD mass properties |
-| `dataset.py` | Relative paths, content hashes, motor identity and split checks |
-| `validation` | Feedback audit, stationary evidence, solver options and release events |
-| `scripts` | CAD preparation, measured-data figure generation and replay rendering |
+| `cli.py` | Dispatches the `motorfit` commands |
+| `config.py` | Composes setup, motor, fixture, motion and coordinate files |
+| `devices/spec.py` | Defines model names, protocol families and encoding ranges |
+| `devices/registry.py` | Selects a driver and applies command quantization |
+| `devices/robstride/`, `devices/damiao/` | Encode frames, match feedback and manage device state |
+| `acquisition/recorder.py` | Executes a trajectory, retains samples/frames and shuts down |
+| `acquisition/trajectories.py` | Adapts BAM trajectories and implements `soccer_sweep` |
+| `identification/bam/` | Registers the torque-MIT actuator and wraps BAM processing, fitting and evaluation |
+| `rigs/pendulum.py` | Supplies fixture inertia and gravity |
+| `identification/{mujoco,newton,mjlab}.py` | Replays the supported M1 pendulum model in each backend |
+| `dataset.py` | Resolves manifest paths and checks hashes, identity and splits |
+| `validation/` | Implements RS05 feedback audits, solver settings and release-event analysis |
 
-A setup in `configs/setups/` composes model profiles from `motors/`, measured geometry from `fixtures/` and experiment settings from `acquisition/`. References resolve against that setup file. Each mounted device has its own ignored coordinate file in `configs/local/`. `configs/simulation/` contains reusable solver settings; measured release scenes belong to the local study archive. Loading a model or an offline dataset does not access the device driver.
+Upstream BAM stays in `third_party/bam/` at the committed submodule revision.
+MotorFit's integration belongs in its own package. The C++ helper
+`validation/release_event.cpp` is used for MuJoCo event replay; ordinary Python
+recording does not require it.
 
-Dataset schema 1 has a `records` list. Every recording names its processed/raw file and BAM reference prediction with SHA-256, plus optional original frame files. All current paths resolve relative to the manifest. Historical absolute paths inside unchanged raw JSON are evidence only: executable readers never use them as file locations.
+## Configuration and model identity
 
-The full dataset and the three-record example share this schema. The formal split and UID travel with the data; arbitrary changes to a current TOML cannot reinterpret a saved recording or M1. `motorfit verify` verifies the model and all named inputs.
+Three objects serve different purposes:
 
-Add a motor of the same protocol by adding a sourced model TOML and a separate setup. Add another protocol as a driver and a control-law adapter. Add another fixture as configuration, or a new rig implementation if its physical equations differ.
+- A **protocol family** chooses the wire implementation, such as RobStride.
+- A **model profile** defines a model's encoding ranges, such as RS05.
+- A **mounted setup** adds device addresses, a measured fixture and a physical zero.
 
-The registry selects the RobStride or Damiao driver. Both use the torque-MIT actuator and measured pendulum rig; see [motor support](../reference/motors.md). These boundaries prevent an SDK method name from silently implying compatible units or fresh measurement timing.
+A setup composes those files using paths relative to the setup file. Mounted-device
+coordinates live under ignored `configs/local/`. The resolved values travel with
+each recording; the motor profile also travels with a fitted model.
 
-The installed command is `motorfit`; Python modules live under `motorfit`. All acquisition goes through `motorfit record`. The C++ helper in `validation/release_event.cpp` is used only for MuJoCo event replay.
+The fitter requires matching motor snapshots across its inputs. Loads and gains
+may differ between records. Editing a TOML later does not reinterpret an existing
+log or saved model. Packaged replay additionally verifies the manifest's hashes,
+UID and split information before using the data.
 
-## Extension points
+## Add a model using an existing protocol
 
-### Motor drivers and control laws
+1. Add a sourced profile under `configs/motors/<family>/`, with the actual encoding ranges.
+2. Add a setup template referencing that profile and an appropriate fixture and motion file.
+3. Check profile loading and representative wire encodings, then commission the physical unit.
+4. Record and evaluate independent runs before documenting hardware accuracy.
 
-| Boundary | Implementation |
-|---|---|
-| Motor specification | [`MotorSpec`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/devices/spec.py) |
-| Native backend selection and command quantization | [`registry.py`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/devices/registry.py) |
-| Device lifecycle and wire evidence | [`devices/`](https://github.com/motorfit/motorfit/tree/main/src/motorfit/devices) |
-| Recording schema and command timing | [`recorder.py`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/acquisition/recorder.py) |
-| BAM input-to-torque law | [`MITActuator`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/identification/bam/actuator.py) |
-| Saved model/log loading | [`runner.py`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/identification/bam/runner.py) |
-| Frozen M1 physics replay | [`identification/`](https://github.com/motorfit/motorfit/tree/main/src/motorfit/identification) |
+RS00–RS06 share the RobStride driver. The Damiao MIT profiles share the Damiao
+driver. A common frame layout does not imply common torque, speed or gain ranges.
+[Protocols](../reference/protocols.md) identifies the source for each family.
 
-Add an adapter only after specifying actual units, gains, saturation, enable/fault state and fresh feedback semantics. An interface named `send_mit` does not guarantee the same law: [the support matrix](../reference/motors.md) documents the reference protocols’ differences. The snapshot defines the torque-MIT ranges. Unrecognized families are rejected.
+## Add a protocol or control law
 
-Keep device codecs and transports separate from the numerical model. Test wire fixtures, shutdown failures and an offline process/fit/load cycle, then collect a small real dataset and evaluate independent runs before making accuracy claims.
+Implement the driver lifecycle and feedback interface alongside the existing
+families, then register the family in `devices/registry.py`. Define command units,
+gain semantics, saturation, enable state, faults and reply matching explicitly.
 
-### Fixtures
+The current numerical adapter is
+[`MITActuator`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/identification/bam/actuator.py).
+It reconstructs nominal torque from encoded position/velocity targets, gains and
+feedforward torque. A protocol with a different control law needs its own adapter,
+recorded inputs and saved-model loader support. An API method called `send_mit`
+alone is insufficient to establish compatible behavior.
 
-[`Pendulum`](https://github.com/motorfit/motorfit/blob/main/src/motorfit/rigs/pendulum.py) supplies the current inertia and gravity terms. Measure its inputs independently of the motor fit. A fixture with different equations needs a rig implementation and a matching simulation scene. `MITActuator` currently selects `Pendulum`; a different rig requires explicit adapter wiring.
+Verify representative expected bytes, failure cleanup and an offline
+process/fit/load operation. Adding a BAM adapter does not automatically add support
+to the M1 physics backends; implement and check those equations separately.
 
-The archived `data/rs05/assets/bench/` is the reference assembly's geometry. Do not treat its mass properties or appearance as measured geometry for a new device.
+## Add a fixture
+
+Change a pendulum's measured values through configuration. If its physical
+equations differ, implement a rig that supplies the mass and bias terms and wire
+it into the actuator. `MITActuator` currently selects `Pendulum` explicitly.
+Physics replay also needs a corresponding scene and matching coordinate convention.
+
+The RS05 CAD assembly under `data/rs05/assets/bench/` belongs to that archived
+experiment. A new fixture needs its own measurements.

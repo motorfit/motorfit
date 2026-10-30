@@ -28,7 +28,7 @@ MotorFit 在 [Rhoban BAM](https://github.com/Rhoban/bam) 基础上补充独立�
 
 ## 主要功能
 
-- **独立驱动采集。** 支持五类电机，保存原始 CAN 帧、带时间戳的反馈和完整实验配置。
+- **独立驱动采集。** 支持 RobStride 和达妙电机，保存原始 CAN 帧、带时间戳的反馈和完整实验配置。
 - **基于 BAM 辨识。** 使用 M1–M6 摩擦模型进行参数拟合、独立数据评估，以及模型快照保存与重载。
 - **对照实测验证。** 比较模型预测与实测轨迹，并在 MuJoCo、Newton 或 mjlab 中回放受支持的 M1 模型。
 
@@ -40,32 +40,23 @@ MotorFit 在 [Rhoban BAM](https://github.com/Rhoban/bam) 基础上补充独立�
 git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
-uv run --frozen motorfit demo \
+uv run --no-sync motorfit demo \
   --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
 示例使用冻结模型检验三条完整记录，将对照图、误差指标和预测轨迹写入 `outputs/demo/`。当前仓库为私有，克隆需要访问权限。MotorFit 尚未发布，版本保持为 0.1.0。
 
-<details>
-<summary><strong>尝试数据处理与小规模拟合</strong></summary>
-
-```bash
-uv run --frozen motorfit process \
-  --raw tests/fixtures/offline/raw --out outputs/processed --dt 0.01
-uv run --frozen motorfit fit \
-  --logdir outputs/processed --model m1 --trials 20 --output outputs/demo-fit.json
-```
-
-这个小规模拟合用于演示接口，不复现正式实验的模型选型。训练、验证与评估流程见[辨识指南](https://motorfit.github.io/guide/identification.html)。
-
-</details>
+运行成功会输出 `PASS: 3 complete recordings; frozen references reproduced.`。
+打开 `outputs/demo/comparison.png` 和 `metrics.csv` 查看预测误差。
+[快速上手](https://motorfit.github.io/main/getting-started/quickstart.html)解释了各项输出和预期数值。
+这条命令回放已有模型；要采集数据并辨识自己的电机，请从[实验流程](https://motorfit.github.io/main/getting-started/workflow.html)开始。
 
 <details>
 <summary><strong>在 MuJoCo 中回放示例</strong></summary>
 
 ```bash
 uv sync --frozen --extra simulation
-uv run --frozen --extra simulation motorfit replay \
+uv run --no-sync motorfit replay \
   --dataset tests/fixtures/offline/manifest.json --engine mujoco \
   --dt 0.002 --output outputs/mujoco
 ```

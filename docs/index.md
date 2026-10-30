@@ -1,34 +1,59 @@
 # MotorFit
 
-**Record a motor. Identify its dynamics. Validate the model.**
+MotorFit identifies actuator dynamics from measured motion. Mount a motor on a
+pendulum fixture, record its response to position commands, and fit a model that
+predicts the motion under different loads and controller gains.
 
-MotorFit adds motor drivers, experiment recording and simulation validation to
-[Rhoban BAM](https://github.com/Rhoban/bam). Start with a complete offline run,
-then use the same tools with a measured motor and fixture.
+It supports **RobStride and Damiao** motors over Linux SocketCAN. MotorFit provides
+the drivers, recording tools and simulation adapters; [Rhoban BAM](https://github.com/Rhoban/bam)
+provides the friction models and optimizer.
 
-![Experiment, identification and simulation workflow](images/overview.png)
+![A pendulum experiment produces recordings, a fitted model and simulation comparisons.](images/overview.png)
 
-## Start here
+## What you get
 
-- [Quickstart](getting-started/quickstart.md): install MotorFit and replay three recordings without hardware.
-- [Workflow](getting-started/workflow.md): plan a study, fit candidates and evaluate a fixed model.
-- [Configuration](guide/configuration.md): select a motor profile and describe the mounted assembly.
+A fitted `model.json` contains friction, effective inertia, torque scaling,
+command delay and coordinate-offset parameters. You can evaluate it against
+recordings that were excluded from fitting, or replay a supported M1 model in
+MuJoCo, Newton or mjlab.
 
-## Find a guide
+The output is an actuator model for the measured operating conditions. MotorFit
+currently models a single pendulum joint; it does not automatically calibrate an
+entire robot or edit its XML. See [Parameters](reference/parameters.md) for the
+physical meaning of the fitted values and their connection to simulation.
 
-| You want to… | Read |
+## Start with a recorded example
+
+[Run the quickstart](getting-started/quickstart.md) to reproduce three real RS05
+recordings and inspect their prediction errors. You need Python 3.12, uv and access
+to the source repository. A motor and GPU are unnecessary for this first run.
+
+## Identify your own motor
+
+Follow the guides in order. Each uses the same configuration and study directory.
+
+1. [Plan the experiment](getting-started/workflow.md): choose loads, motion and evaluation runs.
+2. [Set up the bench](guide/configuration.md): describe the motor, fixture and connection.
+3. [Record motion](guide/acquisition.md): establish the zero, collect runs and check their quality.
+4. [Fit a model](guide/identification.md): process the data and compare candidate models.
+5. [Evaluate the result](guide/validation.md): measure error on held-out runs and inspect residuals.
+
+## Current support
+
+| Capability | Available |
 |---|---|
-| Record motor commands and feedback | [Recording](guide/acquisition.md) |
-| Fit a model to your measurements | [Identification](guide/identification.md) |
-| Compare predictions with recordings | [Validation](guide/validation.md) |
-| Check supported devices and runtimes | [Motor support](reference/motors.md) · [Backends](reference/backends.md) |
-| Inspect a completed experiment | [RS05 study](case-studies/rs05.md) |
-| Add a driver or change the project | [Architecture](development/architecture.md) · [Contributing](development/contributing.md) |
+| Motor acquisition | RobStride private CAN protocol; Damiao MIT protocol |
+| Identification | BAM M1–M6 friction models with torque-MIT control |
+| Physics replay | M1 with the pendulum fixture |
+| Hardware reference | One RS05 study; Damiao currently has software tests |
 
-The version menu selects the development handbook (`main`) or a published release.
-The package is currently **0.1.0**, unreleased. The handbook is public; cloning the source
-repository requires access. A [Chinese introduction](https://github.com/motorfit/motorfit/blob/main/README.zh-CN.md)
-is available in the repository.
+[Supported models](reference/motors.md) lists the shipped profiles.
+[The RS05 study](case-studies/rs05.md) describes the experiment, selected parameters
+and remaining prediction errors.
+
+The package is **0.1.0, unreleased**. The menu beside the logo selects the handbook
+version. The documentation is public; the source repository currently requires
+GitHub access.
 
 ```{toctree}
 :hidden:
@@ -42,29 +67,32 @@ Workflow <getting-started/workflow>
 :hidden:
 :caption: User guide
 
-Configuration <guide/configuration>
-Recording <guide/acquisition>
-Identification <guide/identification>
-Validation <guide/validation>
+Setup <guide/configuration>
+Record <guide/acquisition>
+Fit <guide/identification>
+Evaluate <guide/validation>
 ```
 
 ```{toctree}
 :hidden:
 :caption: Reference
 
-Motor support <reference/motors>
+Parameters <reference/parameters>
+Motors <reference/motors>
 Trajectories <reference/trajectories>
+Data formats <reference/data>
+Commands <reference/commands>
 Backends <reference/backends>
 Protocols <reference/protocols>
 ```
 
 ```{toctree}
 :hidden:
-:caption: RS05 study
+:caption: RS05 example
 
-Experiment <case-studies/rs05>
+Study <case-studies/rs05>
 Fixture <case-studies/rs05-fixture>
-Findings <case-studies/rs05-findings>
+Results <case-studies/rs05-findings>
 ```
 
 ```{toctree}
