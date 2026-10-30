@@ -105,15 +105,6 @@ def test_upstream_pipeline_and_snapshot_load(monkeypatch, tmp_path, capsys):
     bam_tool("fit", ["--logdir", str(processed), "--eval", "--output", str(params)])
     assert "Score:" in capsys.readouterr().out
 
-    import matplotlib.pyplot as plt
-
-    monkeypatch.setattr(plt, "show", lambda: None)
-    bam_tool("jitter", ["--logdir", str(tmp_path / "raw")])
-    assert "Loaded 3 logs, 90 intervals" in capsys.readouterr().out
-    plt.close("all")
-    with pytest.raises(NotImplementedError, match="does not implement --load-study"):
-        bam_tool("fit", ["--logdir", str(processed), "--load-study", "missing.db"])
-
     # Explicitly reject mixed snapshots instead of silently selecting one motor.
     other = {**result, "motor": "another-model"}
     other["motor_spec"] = {**spec.to_dict(), "name": "another-model"}

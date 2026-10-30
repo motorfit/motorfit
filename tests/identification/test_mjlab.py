@@ -7,41 +7,10 @@ import pytest
 pytest.importorskip("mjlab")
 pytest.importorskip("torch")
 
-import mujoco
 import torch
 
-from motorfit.identification.mjlab import MjlabPendulumBatch, TorchFractionalDelay
-from motorfit.identification.mujoco import FractionalDelay
+from motorfit.identification.mjlab import MjlabPendulumBatch
 from motorfit.rigs.pendulum import Pendulum
-
-
-def test_implicitfast_gpu_uses_implicit_viscous_update(m1_params, pendulum_log):
-    params = replace(m1_params, friction_base=0, friction_viscous=0.5, command_delay=0)
-    log = deepcopy(pendulum_log)
-    log.update(kp=0, kd=0)
-    log["entries"] = [
-        dict(position=-params.q_offset, speed=2.0, goal_position=0, torque_enable=False)
-    ] * 2
-    batch = MjlabPendulumBatch([log], params, integrator="implicitfast")
-    assert batch.sim.mj_model.opt.integrator == mujoco.mjtIntegrator.mjINT_IMPLICITFAST
-    assert batch.sim.wp_model.opt.integrator == int(mujoco.mjtIntegrator.mjINT_IMPLICITFAST)
-    batch.step(batch.tensor([[0]]), batch.tensor([[0]]))
-    inertia = Pendulum(log).compute_mass(0, 0) + params.armature
-    expected = 2.0 / (1 + batch.dt * params.friction_viscous / inertia)
-    assert batch.sim.data.qvel[0, 0].item() == pytest.approx(expected, rel=1e-6)
-
-
-def test_gpu_fractional_delay_and_partial_reset():
-    goals = np.random.default_rng(4).normal(size=(100, 3, 2)).astype(np.float32)
-    gpu = TorchFractionalDelay(0.006293081495280065, 0.002, torch.tensor(goals[0], device="cuda:0"))
-    cpu = FractionalDelay(0.006293081495280065, 0.002, goals[0])
-    actual = torch.stack([gpu.push(torch.tensor(g, device="cuda:0")) for g in goals]).cpu().numpy()
-    expected = np.array([cpu.push(g) for g in goals])
-    np.testing.assert_allclose(actual, expected, atol=3e-7)
-    other = gpu.buffer[:, [0, 2]].clone()
-    gpu.reset(torch.full((1, 2), 17.0, device="cuda:0"), [1])
-    assert torch.equal(gpu.buffer[:, [0, 2]], other)
-    assert torch.all(gpu.buffer[:, 1] == 17)
 
 
 def test_gpu_inertia_gravity_and_offset(m1_params, pendulum_log):

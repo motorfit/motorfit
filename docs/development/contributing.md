@@ -55,6 +55,9 @@ profiles and independent expected bytes; repeat by model or firmware only when t
 encoding or behavior differs. Run the complete fitting pipeline once per control
 source (MIT or recorded effort). Avoid duplicating an integration check with mocks
 or retesting upstream physics; retain failure cleanup and data-integrity checks.
+Prefer tests of complete user operations over individual helpers, property access,
+catalogue listings or every possible invalid argument. A new test should identify
+a concrete regression that the existing workflow checks would miss.
 
 ## Documentation structure
 

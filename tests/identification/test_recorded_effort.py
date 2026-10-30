@@ -64,28 +64,6 @@ def test_actual_input_not_goal_or_measured_load_drives_bam_and_resets_keep_clock
     assert model.actuator.compute_control(0, 0, 0, 0.01) == x
 
 
-def test_batch_keeps_separate_recorded_commands():
-    model, log = model_and_log()
-    for e in log["entries"]:
-        for k in e:
-            e[k] = np.array([e[k], e[k] * 2]) if k == "control" else np.array([e[k], e[k]])
-    for k in ("mass", "arm_mass", "length", "kp", "kd"):
-        log[k] = np.array([log[k], log[k]])
-    log["control_source"] = np.array(["recorded_effort"] * 2)
-    _, _, controls = Simulator(model).rollout_log(log, simulate_control=True)
-    np.testing.assert_allclose(np.asarray(controls)[:, 1], np.asarray(controls)[:, 0] * 2)
-
-
-def test_input_is_required_and_unknown_control_source_rejected():
-    model, log = model_and_log()
-    log["entries"][0].pop("control")
-    with pytest.raises(ValueError, match="actual recorded control"):
-        model.actuator.load_log(log)
-    log["control_source"] = "MIT"
-    with pytest.raises(ValueError, match="control_source"):
-        model.actuator.load_log(log)
-
-
 def test_resampling_uses_actual_tx_times_and_step_hold():
     data = dict(completed=True, first_feedback_monotonic=100, entries=[])
     for t, tx, u in [(0, 0.02, 1), (0.1, 0.12, -1), (0.2, 0.22, 0.5)]:

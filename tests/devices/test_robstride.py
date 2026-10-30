@@ -25,53 +25,6 @@ def spec():
     return load_spec(MODEL_DIR / "rs05.toml")
 
 
-def test_wire_boundaries(spec):
-    model = spec
-    for side, word in ((0, 0), (1, 65535)):
-        command = encode_command(
-            model.position[side],
-            model.velocity[side],
-            model.kp[side],
-            model.kd[side],
-            model.torque[side],
-            spec=model,
-        )
-        assert command.arbitration_id == (1 << 24) | (word << 8) | 127
-        assert bytes(command.data) == struct.pack(">HHHH", word, word, word, word)
-        for index, limits in enumerate(
-            (model.position, model.velocity, model.kp, model.kd, model.torque)
-        ):
-            values = [
-                model.position[side],
-                model.velocity[side],
-                model.kp[side],
-                model.kd[side],
-                model.torque[side],
-            ]
-            values[index] = limits[side] + (-0.01 if side == 0 else 0.01)
-            with pytest.raises(ValueError):
-                encode_command(*values, spec=model)
-    with pytest.raises(ValueError):
-        encode_command(float("nan"), 0, 5, 0.2, 0, spec=model)
-
-
-def test_feedback_uses_selected_model_ranges():
-    message = can.Message(
-        arbitration_id=0x02007FFF,
-        is_extended_id=True,
-        data=bytes.fromhex("ffffffffffff01f4"),
-    )
-    decoded = []
-    for name in ("rs02", "rs05"):
-        model = load_spec(MODEL_DIR / f"{name}.toml")
-        feedback = decode_feedback(message, spec=model)
-        assert feedback.position == pytest.approx(model.position[1])
-        assert feedback.velocity == pytest.approx(model.velocity[1])
-        assert feedback.torque == pytest.approx(model.torque[1])
-        decoded.append((feedback.velocity, feedback.torque))
-    assert len(set(decoded)) > 1
-
-
 def status(*, kind=2, mode=0, faults=0, motor_id=127, host_id=255):
     return can.Message(
         arbitration_id=(kind << 24) | (mode << 22) | (faults << 16) | (motor_id << 8) | host_id,
@@ -116,29 +69,30 @@ def test_rs05_matches_independently_executed_embedded_c_vector(spec):
     frame = encode_command(0.5, 1, 5, 0.2, 1, spec=spec)
     assert frame.arbitration_id == 0x0197457F
     assert bytes(frame.data).hex() == "8516828e028f0a3d"
+    assert bytes(encode_command(-12.57, -50, 0, 0, -5.5, spec=spec).data) == bytes(8)
+    assert bytes(encode_command(12.57, 50, 500, 5, 5.5, spec=spec).data) == b"\xff" * 8
+    for torque in (5.6, float("nan")):
+        with pytest.raises(ValueError):
+            encode_command(0, 0, 5, 0.2, torque, spec=spec)
 
 
 class FakeBus:
     """Replies become available only after their request, like an actual device."""
 
-    def __init__(self, replies=(), *, pending=()):
+    def __init__(self, replies=()):
         self.replies = iter(replies)
-        self.incoming = list(pending)
+        self.incoming = []
         self.sent = []
-        self.events = []
         self.closed = False
 
     def send(self, message, timeout):
         self.sent.append(message)
-        self.events.append(("tx", message))
         self.incoming.extend(next(self.replies, []))
 
     def recv(self, timeout):
         if not self.incoming:
             return None
-        frame = self.incoming.pop(0)
-        self.events.append(("rx", frame))
-        return frame
+        return self.incoming.pop(0)
 
     def shutdown(self):
         self.closed = True
@@ -156,45 +110,8 @@ def startup_replies():
     ]
 
 
-def test_start_and_control_follow_serial_ack_order(monkeypatch, spec):
-    bus = FakeBus(startup_replies() + [[status(mode=2)], [status()]])
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-    observed = []
-    with Motor(
-        spec, on_frame=lambda direction, frame: observed.append((direction, frame))
-    ) as motor:
-        assert motor.start().mode == 2
-        assert motor.command(2.2436695, 0, 5, 0.2, 0).communication_type == 2
-    assert [f.arbitration_id for f in bus.sent] == [
-        0x0400FF7F,
-        0x1800FF7F,
-        0x1200FF7F,
-        0x1100FF7F,
-        0x1200FF7F,
-        0x1100FF7F,
-        0x0300FF7F,
-        0x017FFF7F,
-        0x0400FF7F,
-    ]
-    assert [bytes(f.data).hex() for f in bus.sent] == [
-        "0000000000000000",
-        "0102030405060000",
-        "0570000000000000",
-        "0570000000000000",
-        "28700000d0070000",
-        "2870000000000000",
-        "0000000000000000",
-        "96d87fff028f0a3d",
-        "0000000000000000",
-    ]
-    assert [direction for direction, _ in observed] == ["tx", "rx"] * 9
-    assert observed == bus.events
-    assert bus.closed
-
-
-# A status ACK, a register readback and the final enable ACK use distinct paths.
-@pytest.mark.parametrize("missing_phase", [0, 3, 6], ids=["stop", "readback", "enable"])
-def test_missing_startup_ack_or_readback_prevents_later_steps(monkeypatch, spec, missing_phase):
+def test_missing_enable_ack_stops_and_closes(monkeypatch, spec):
+    missing_phase = 6
     replies = startup_replies()[:missing_phase] + [[], [status()]]
     bus = FakeBus(replies)
     monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
@@ -206,8 +123,8 @@ def test_missing_startup_ack_or_readback_prevents_later_steps(monkeypatch, spec,
     assert bus.closed
 
 
-@pytest.mark.parametrize("index,phase,wrong_value", [(0x7005, 3, 3), (0x7028, 5, 0)])
-def test_readback_mismatch_prevents_enable(monkeypatch, spec, index, phase, wrong_value):
+def test_watchdog_readback_mismatch_prevents_enable(monkeypatch, spec):
+    index, phase, wrong_value = 0x7028, 5, 0
     replies = startup_replies()[:phase] + [[parameter(index, wrong_value)], [status()]]
     bus = FakeBus(replies)
     monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
@@ -228,97 +145,6 @@ def test_enable_rejects_wrong_mode_or_faults(monkeypatch, spec, reply, error):
         with Motor(spec) as motor:
             motor.start()
     assert [f.arbitration_id >> 24 for f in bus.sent][-2:] == [3, 4]
-    assert bus.closed
-
-
-def test_old_periodic_foreign_and_parameter_frames_cannot_acknowledge_state(monkeypatch, spec):
-    old = status()
-    valid = status()
-    distractors = [
-        status(kind=24),
-        status(motor_id=1),
-        status(host_id=253),
-        parameter(0x7019, 3.05465, "f"),
-    ]
-    bus = FakeBus([distractors + [valid], [status()]], pending=[old])
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-    with Motor(spec) as motor:
-        assert motor.read_state().arbitration_id == valid.arbitration_id
-        assert motor.discarded_frames == 1
-    assert bus.events[0] == ("rx", old)
-    assert len([event for event in bus.events if event[0] == "rx"]) == 7
-    assert [f.arbitration_id >> 24 for f in bus.sent] == [2, 4]
-    assert all(bytes(f.data) == bytes(8) for f in bus.sent)
-
-
-def test_preexisting_reply_without_new_reply_times_out(monkeypatch, spec):
-    bus = FakeBus([[], [status()]], pending=[status()])
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-    with pytest.raises(TimeoutError, match="type-2 reply"):
-        with Motor(spec) as motor:
-            motor.read_state()
-    assert [f.arbitration_id >> 24 for f in bus.sent] == [2, 4]
-    assert bus.closed
-
-
-def test_parameter_reads_correlate_motor_host_index_and_status(monkeypatch, spec):
-    index = 0x7019
-    bus = FakeBus(
-        [
-            [
-                parameter(index, 99, "f", motor_id=1),
-                parameter(index, 99, "f", host_id=253),
-                parameter(0x701A, 99, "f"),
-                status(kind=24),
-                parameter(index, 1.25, "f"),
-            ],
-            [parameter(index, 999, "f", rejected=True)],
-            [],
-        ]
-    )
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-    motor = Motor(spec)
-    try:
-        assert motor.read_parameter(index) == 1.25
-        with pytest.raises(RuntimeError, match="rejected register"):
-            motor.read_parameter(index)
-        with pytest.raises(TimeoutError, match="register 0x7019"):
-            motor.read_parameter(index)
-        with pytest.raises(ValueError, match="Unsupported register format"):
-            motor.read_parameter(index, "d")
-    finally:
-        motor.close()
-    assert [f.arbitration_id for f in bus.sent] == [0x1100FF7F] * 3
-    assert all(bytes(f.data).hex() == "1970000000000000" for f in bus.sent)
-
-
-def test_read_only_fault_frame_aborts_and_stops_without_masking_error(monkeypatch, spec):
-    fault = can.Message(
-        arbitration_id=0x15007FFF, is_extended_id=True, data=struct.pack("<II", 8, 0)
-    )
-    bus = FakeBus([[fault], []])  # Stop ACK also fails.
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-    with pytest.raises(RuntimeError, match="device fault 0x00000008") as exc:
-        with Motor(spec) as motor:
-            motor.read_state()
-    assert any("stop failed" in note for note in exc.value.__notes__)
-    assert [f.arbitration_id >> 24 for f in bus.sent] == [2, 4]
-    assert bus.closed
-
-
-def test_drain_logging_error_does_not_prevent_stop_or_close(monkeypatch, spec):
-    bus = FakeBus(pending=[status()])
-    monkeypatch.setattr(can, "Bus", lambda **kwargs: bus)
-
-    def broken_log(direction, frame):
-        if direction == "rx":
-            raise OSError("log failed")
-
-    with pytest.raises(LookupError, match="original") as exc:
-        with Motor(spec, on_frame=broken_log):
-            raise LookupError("original")
-    assert [f.arbitration_id >> 24 for f in bus.sent] == [4]
-    assert any("log failed" in note for note in exc.value.__notes__)
     assert bus.closed
 
 

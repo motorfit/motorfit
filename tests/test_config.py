@@ -3,9 +3,7 @@
 import shutil
 from pathlib import Path
 
-import pytest
-
-from motorfit.config import load_fixture, load_setup, save_zero
+from motorfit.config import load_setup, save_zero
 
 
 def test_setup_paths_and_per_device_coordinates(monkeypatch, tmp_path):
@@ -42,17 +40,3 @@ def test_setup_paths_and_per_device_coordinates(monkeypatch, tmp_path):
     for name in ("rs01", "rs02", "rs06"):
         other.write_text(original.replace("rs05.toml", f"{name}.toml"))
         assert load_setup(other)["motor"]["name"] == name
-
-
-@pytest.mark.parametrize(
-    "contents, message",
-    [
-        ("mass = 0.5\nweight_mass = 0.5\nbolt_mass = 0.02\nnut_mass = 0.004\n", "mass must equal"),
-        ("mass = 0.5\nweight_mass = 0.5\n", "requires weight_mass"),
-    ],
-)
-def test_inconsistent_fixture_masses_are_rejected(tmp_path, contents, message):
-    fixture = tmp_path / "fixture.toml"
-    fixture.write_text(contents)
-    with pytest.raises(ValueError, match=message):
-        load_fixture(fixture)

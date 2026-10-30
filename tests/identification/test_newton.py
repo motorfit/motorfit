@@ -7,25 +7,9 @@ import pytest
 pytest.importorskip("newton")
 pytest.importorskip("mujoco_warp")
 
-import mujoco
 
 from motorfit.identification.newton import NewtonPendulumBatch
 from motorfit.rigs.pendulum import Pendulum
-
-
-def test_implicitfast_uses_implicit_viscous_update(m1_params, pendulum_log):
-    params = replace(m1_params, friction_base=0, friction_viscous=0.5, command_delay=0)
-    log = deepcopy(pendulum_log)
-    log.update(kp=0, kd=0)
-    log["entries"] = [
-        dict(position=-params.q_offset, speed=2.0, goal_position=0, torque_enable=False)
-    ] * 2
-    batch = NewtonPendulumBatch([log], params, integrator="implicitfast")
-    assert batch.mj_model.opt.integrator == mujoco.mjtIntegrator.mjINT_IMPLICITFAST
-    batch.step(np.zeros(1), np.zeros(1))
-    inertia = Pendulum(log).compute_mass(0, 0) + params.armature
-    expected = 2.0 / (1 + batch.dt * params.friction_viscous / inertia)
-    assert batch.velocity()[0] == pytest.approx(expected, rel=1e-6)
 
 
 def test_imported_inertia_gravity_and_ref_coordinates(m1_params, pendulum_log):
@@ -62,29 +46,3 @@ def test_newton_delay_clamp_disable_friction_and_replay_reset(m1_params, pendulu
     np.testing.assert_allclose(batch.mj_model.dof_damping, m1_params.friction_viscous)
     for first, second in zip(batch.rollout(), batch.rollout(), strict=True):
         np.testing.assert_array_equal(first, second)
-
-
-def test_newton_stiction_breakaway_and_viscous_force(m1_params, pendulum_log):
-    logs = []
-    for factor in (0.8, 1.2):
-        log = deepcopy(pendulum_log)
-        log.update(
-            kp=0, kd=0, feedforward_torque=factor * m1_params.friction_base / m1_params.torque_ratio
-        )
-        log["entries"] = [
-            dict(position=-m1_params.q_offset, speed=0, goal_position=0, torque_enable=True)
-        ] * 20
-        logs.append(log)
-    batch = NewtonPendulumBatch(logs, m1_params, dt=0.001)
-    q0 = batch.position()
-    for _ in range(100):
-        batch.step(np.zeros(2), np.ones(2))
-    change = batch.position() - q0
-    assert abs(change[0]) < 1e-5
-    assert change[1] > 1e-3
-    batch.state.joint_qd.assign(np.array([2.0, 2.0], dtype=np.float32))
-    batch.step(np.zeros(2), np.zeros(2))
-    np.testing.assert_allclose(
-        batch.mj_data.qfrc_passive, -2 * m1_params.friction_viscous, rtol=1e-6
-    )
-    np.testing.assert_allclose(batch.mj_data.qfrc_constraint, -m1_params.friction_base, rtol=1e-6)

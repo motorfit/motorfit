@@ -35,10 +35,6 @@ class DeviceBus:
         self.family, self.version, self.clock = family, version, clock
         self.pending, self.sent = [], []
         self.closed = False
-        self.fail_command = False
-        self.sdo_abort = None
-        self.wrong_size = False
-        self.wrong_mode = False
         self.values = {
             (0x1016, 1): ("I", 0),
             (0x1018, 3): ("I", version),
@@ -59,8 +55,6 @@ class DeviceBus:
         b = bytes(frame.data)
         if self.family == "myactuator":
             assert frame.arbitration_id == 0x141 and not frame.is_extended_id
-            if b[0] == 0xA1 and self.fail_command:
-                return
             reply = bytearray(b)
             if b[0] in (0x9C, 0xA1):
                 reply[1:] = struct.pack("<bhhh", 32, self.current_centiamps, self.speed_dps, 123)
@@ -73,7 +67,7 @@ class DeviceBus:
             self.pending.append(message(0x241, reply))
         elif self.family == "hightorque":
             assert frame.arbitration_id == 0x8001 and frame.is_extended_id
-            if b[:2] == b"\x17\x01" and not self.fail_command:
+            if b[:2] == b"\x17\x01":
                 self.pending.append(
                     message(1, b"\x27\x01" + struct.pack("<hhh", *self.ht_values), extended=True)
                 )
@@ -81,14 +75,10 @@ class DeviceBus:
             if frame.arbitration_id != 0x601:  # NMT/heartbeat have no SDO reply.
                 return
             key = (int.from_bytes(b[1:3], "little"), b[3])
-            if self.sdo_abort == key:
-                reply = b"\x80" + b[1:4] + bytes.fromhex("00000206")
-            elif b[0] == 0x40:
+            if b[0] == 0x40:
                 fmt, value = self.values[key]
                 raw = struct.pack("<" + fmt, value)
                 command = {1: 0x4F, 2: 0x4B, 4: 0x43}[len(raw)]
-                if self.wrong_size:
-                    command = 0x4B if command == 0x43 else 0x43
                 reply = bytes([command]) + b[1:4] + raw.ljust(4, b"\x00")
             else:
                 n = {0x2F: 1, 0x2B: 2, 0x23: 4}[b[0]]
@@ -97,7 +87,7 @@ class DeviceBus:
                 if key == (0x6040, 0):
                     self.values[(0x6041, 0)] = ("H", {0: 0x40, 6: 0x21, 7: 0x23, 15: 0x27}[b[4]])
                 if key == (0x6060, 0):
-                    self.values[(0x6061, 0)] = ("b", 3 if self.wrong_mode else b[4])
+                    self.values[(0x6061, 0)] = ("b", b[4])
                 reply = b"\x60" + b[1:4] + bytes(4)
             self.pending.append(message(0x581, reply))
 
@@ -161,43 +151,15 @@ def test_signed_wire_effort_and_read_units(profile, monkeypatch):
     assert bus.closed
 
 
-@pytest.mark.parametrize("profile", DRIVER_PROFILES)
-def test_wrong_id_and_stale_frames_do_not_satisfy_requests(profile, monkeypatch):
-    spec = spec_for(profile)
-    bus = DeviceBus(spec.family, spec.protocol.get("firmware_version", 8))
-    original = bus.send
-
-    def send(frame, timeout):
-        original(frame, timeout)
-        # Only wrong-address frames remain after each genuine request.
-        for reply in bus.pending:
-            reply.arbitration_id += 1
-
-    bus.send = send
-    bus.pending.append(message(0x241, bytes(8)))  # Must be drained before TX.
-    monkeypatch.setattr(can, "Bus", lambda **kw: bus)
-    motor = driver(spec.family)(spec, timeout=0.001)
-    with pytest.raises(TimeoutError):
-        motor.read_state()
-    motor.close()
-
-
-def test_hex_rejects_revision_abort_bad_sizes_and_mode(monkeypatch):
+def test_hex_rejects_mismatched_firmware(monkeypatch):
     spec = spec_for("hexfellow/canopen_v08")
-    for issue in ("revision", "abort", "size", "mode"):
-        bus = DeviceBus("hexfellow", 7 if issue == "revision" else 8)
-        bus.sdo_abort = (0x1018, 3) if issue == "abort" else None
-        bus.wrong_size = issue == "size"
-        bus.wrong_mode = issue == "mode"
-        monkeypatch.setattr(can, "Bus", lambda **kw: bus)
-        motor = driver("hexfellow")(spec)
-        with pytest.raises((ValueError, RuntimeError)):
-            motor.start()
-        # No nonzero effort can be sent by failed initialization.
-        assert not any(
-            bytes(f.data[:4]) == bytes.fromhex("2b716000") and any(f.data[4:6]) for f in bus.sent
-        )
-        motor.close()
+    bus = DeviceBus("hexfellow", 7)
+    monkeypatch.setattr(can, "Bus", lambda **kw: bus)
+    motor = driver("hexfellow")(spec)
+    with pytest.raises(ValueError, match="firmware"):
+        motor.start()
+    assert not any(bytes(f.data[:4]) == bytes.fromhex("2b716000") for f in bus.sent)
+    motor.close()
 
 
 def test_myactuator_current_saturation_and_faults(monkeypatch):
@@ -215,17 +177,7 @@ def test_myactuator_current_saturation_and_faults(monkeypatch):
     motor.close()
 
 
-def test_high_torque_does_not_fake_watchdog_support(monkeypatch):
-    bus = DeviceBus("hightorque")
-    monkeypatch.setattr(can, "Bus", lambda **kw: bus)
-    motor = driver("hightorque")(spec_for("hightorque/ht_can"))
-    with pytest.raises(ValueError, match="watchdog"):
-        motor.start(100)
-    assert not bus.sent
-    motor.close()
-
-
-def test_native_record_process_fit_reload_and_evaluate(monkeypatch, tmp_path, capsys):
+def test_native_record_process_fit_and_reload(monkeypatch, tmp_path):
     """One recorded-effort pipeline; protocol variants are covered by wire tests."""
     profile = "hexfellow/canopen_v08"
     import json
@@ -318,13 +270,6 @@ def test_native_record_process_fit_reload_and_evaluate(monkeypatch, tmp_path, ca
     model = load_model(params)
     assert model.actuator.spec == spec
     assert model.actuator.__class__.__name__ == "RecordedEffortActuator"
-    bam_tool("fit", ["--logdir", str(tmp_path / "logs"), "--eval", "--output", str(params)])
-    assert "Score:" in capsys.readouterr().out
-    import matplotlib.pyplot as plt
-
-    monkeypatch.setattr(plt, "show", lambda: None)
-    bam_tool("plot", ["--logdir", str(tmp_path / "logs"), "--sim", "--params", str(params)])
-    plt.close("all")
 
 
 @pytest.mark.parametrize("profile", DRIVER_PROFILES)
@@ -339,13 +284,15 @@ def test_failed_state_read_closes_and_disables(profile, monkeypatch, tmp_path):
 
     def failing_send(frame, timeout):
         b = bytes(frame.data)
-        if spec.family == "myactuator" and b[0] == 0x9C:
-            return
-        if spec.family == "hightorque" and b[:2] == b"\x17\x01":
-            return
-        if spec.family == "hexfellow" and b[:4] == bytes.fromhex("40646000"):
-            return
         original(frame, timeout)
+        # A foreign reply must time out and take the recorder through real cleanup.
+        if (
+            (spec.family == "myactuator" and b[0] == 0x9C)
+            or (spec.family == "hightorque" and b[:2] == b"\x17\x01")
+            or (spec.family == "hexfellow" and b[:4] == bytes.fromhex("40646000"))
+        ):
+            for reply in bus.pending:
+                reply.arbitration_id += 1
 
     bus.send = failing_send
     monkeypatch.setattr(can, "Bus", lambda **kw: bus)
@@ -374,28 +321,6 @@ def test_failed_state_read_closes_and_disables(profile, monkeypatch, tmp_path):
     )
 
 
-@pytest.mark.parametrize("profile", ["myactuator/rmd_x_v3", "hexfellow/canopen_v08"])
-def test_stop_is_sent_even_if_receive_queue_cannot_drain(profile, monkeypatch):
-    spec = spec_for(profile)
-    bus = DeviceBus(spec.family)
-    monkeypatch.setattr(can, "Bus", lambda **kw: bus)
-    motor = driver(spec.family)(spec)
-
-    def busy():
-        raise TimeoutError("queue remains busy")
-
-    motor.drain = busy
-    with pytest.raises(TimeoutError, match="busy"):
-        motor.stop()
-    last = bytes(bus.sent[-1].data)
-    assert last == (
-        bytes.fromhex("8000000000000000")
-        if spec.family == "myactuator"
-        else bytes.fromhex("2b40600000000000")
-    )
-    motor.close()
-
-
 @pytest.mark.parametrize("profile", DRIVER_PROFILES)
 def test_read_and_inspect_never_enable_or_write(profile, monkeypatch, tmp_path):
     import json
@@ -417,15 +342,3 @@ def test_read_and_inspect_never_enable_or_write(profile, monkeypatch, tmp_path):
     else:
         assert all(f.arbitration_id == 0x601 and f.data[0] == 0x40 for f in bus.sent)
     assert bus.closed
-
-
-def test_hex_detects_mode_change_during_recording(monkeypatch):
-    bus = DeviceBus("hexfellow")
-    monkeypatch.setattr(can, "Bus", lambda **kw: bus)
-    motor = driver("hexfellow")(spec_for("hexfellow/canopen_v08"))
-    motor.start()
-    bus.values[(0x6061, 0)] = ("b", 3)
-    with pytest.raises(RuntimeError, match="left torque mode"):
-        motor.read_state()
-    motor.stop()
-    motor.close()

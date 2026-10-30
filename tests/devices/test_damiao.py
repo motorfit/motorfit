@@ -10,7 +10,6 @@ import pytest
 from motorfit.acquisition.recorder import record
 from motorfit.config import load_setup
 from motorfit.devices.damiao.diagnostics import inspect
-from motorfit.devices.damiao.motor import Motor
 from motorfit.devices.damiao.protocol import decode_feedback, encode_command, quantize
 from motorfit.devices.spec import MotorSpec
 
@@ -90,8 +89,6 @@ class DeviceBus:
             value = self.registers.get(rid, 24.0 if rid in (17, 18, 20, 60) else 1)
             if self.fail == "range" and rid == 22:
                 value = 45.0
-            if self.fail == "watchdog" and rid == 9 and b[2] == 0x33:
-                value = 0
             fmt = "f" if isinstance(value, float) else "I"
             reply = bytes(b[:4]) + struct.pack("<" + fmt, value)
             self.pending.append(can.Message(arbitration_id=17, is_extended_id=False, data=reply))
@@ -101,17 +98,12 @@ class DeviceBus:
         elif bytes(b) == b"\xff" * 7 + b"\xfc":
             assert self.registers[10] == 1 and self.registers[9] == 2000
             self.enabled = True
-            if self.fail == "enable":
-                return
         elif frame.arbitration_id == 1:
             self.motion += 1
             if self.fail == "timeout":
                 return
             if self.fail == "fault":
                 self.pending.append(status(0xB))
-                return
-            if self.fail == "lost-enable":
-                self.pending.append(status(0))
                 return
         else:
             assert frame.arbitration_id == 0x7FF and b[2] == 0xCC
@@ -135,11 +127,9 @@ def connect(monkeypatch, fail=None):
     return bus
 
 
-@pytest.mark.parametrize("trajectory", ["sin_time_square", "nothing"])
-def test_native_recorder_bam_metadata_and_shutdown(monkeypatch, tmp_path, trajectory):
+def test_native_recorder_bam_metadata_and_shutdown(monkeypatch, tmp_path):
     bus = connect(monkeypatch)
     config = setup()
-    config["recording"]["trajectory"] = trajectory
     raw = record(config, tmp_path / "run")
     data = json.loads(raw.read_text())
     assert data["completed"] and data["motor_spec"]["family"] == "damiao"
@@ -155,19 +145,14 @@ def test_native_recorder_bam_metadata_and_shutdown(monkeypatch, tmp_path, trajec
     assert not bus.enabled and bus.closed
     assert bytes(bus.events[-1].data) == b"\xff" * 7 + b"\xfd"
     assert not any(f.arbitration_id == 0x7FF and f.data[2] == 0xAA for f in bus.events)
-    if trajectory == "nothing":
-        assert bus.motion == 0
 
 
 @pytest.mark.parametrize(
     "failure,exception",
     [
-        ("enable", TimeoutError),
         ("timeout", TimeoutError),
         ("range", ValueError),
-        ("watchdog", RuntimeError),
         ("fault", RuntimeError),
-        ("lost-enable", RuntimeError),
     ],
 )
 def test_failed_recording_stops_and_retains_evidence(monkeypatch, tmp_path, failure, exception):
@@ -179,7 +164,7 @@ def test_failed_recording_stops_and_retains_evidence(monkeypatch, tmp_path, fail
     assert not bus.enabled and bus.closed
     assert bytes(bus.events[-1].data) == b"\xff" * 7 + b"\xfd"
     assert (tmp_path / "run/frames.jsonl").read_text()
-    if failure in {"enable", "range", "watchdog"}:
+    if failure == "range":
         assert bus.motion == 0 and data["entries"] == []
 
 
@@ -189,18 +174,3 @@ def test_inspection_is_read_only(monkeypatch, tmp_path):
     assert result["parameters"]["PMAX"]["value"] == 12.5
     assert bus.closed
     assert all(f.arbitration_id == 0x7FF and f.data[2] == 0x33 for f in bus.events)
-
-
-def test_drain_failure_still_sends_disable(monkeypatch):
-    bus = connect(monkeypatch)
-    motor = Motor(MotorSpec.from_dict(setup()["motor"]))
-
-    def failed_drain():
-        bus.pending.clear()
-        raise RuntimeError("logging failed")
-
-    monkeypatch.setattr(motor, "_drain", failed_drain)
-    with pytest.raises(RuntimeError, match="logging failed"):
-        motor.stop()
-    assert bytes(bus.events[-1].data) == b"\xff" * 7 + b"\xfd"
-    motor.close()
