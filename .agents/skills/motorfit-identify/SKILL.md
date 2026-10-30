@@ -5,7 +5,7 @@ description: Process recorded motor data, fit BAM M1–M6 candidates and select 
 
 # Identify motor dynamics
 
-Run commands from the MotorFit repository root. Read [the workflow](../../docs/workflow.md) and [BAM identification](../../docs/bam-identification.md). For MyActuator, HighTorque or Hexfellow, also read the input-timing section of [effort-motors.md](../../docs/effort-motors.md).
+Run commands from the MotorFit repository root. Read [the workflow](../../../docs/workflow.md) and [BAM identification](../../../docs/bam-identification.md). For MyActuator, HighTorque or Hexfellow, also read the input-timing section of [effort-motors.md](../../../docs/effort-motors.md).
 
 ## Establish the dataset
 
@@ -46,7 +46,7 @@ Report the candidate comparison, selected model path, held-out score and limitat
 
 ## Maintenance sources
 
-- [BAM runner](../../src/motor_identification/identification/bam/runner.py), [fitting](../../src/motor_identification/identification/bam/fitting.py) and [resampling](../../src/motor_identification/identification/bam/resample.py): snapshot checks, scoring and input timing.
-- [Pinned BAM CLI](../../third_party/bam/bam/fit.py): optimization flags and model selection.
+- [BAM runner](../../../src/motor_identification/identification/bam/runner.py), [fitting](../../../src/motor_identification/identification/bam/fitting.py) and [resampling](../../../src/motor_identification/identification/bam/resample.py): snapshot checks, scoring and input timing.
+- [Pinned BAM CLI](../../../third_party/bam/bam/fit.py): optimization flags and model selection.
 
 Recheck these sources when fitting flags, supported controllers or snapshot formats change.

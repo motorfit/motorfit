@@ -6,7 +6,7 @@
 | `configs/` | Reusable motor, fixture and acquisition templates | Tracked, except `local/` |
 | `examples/offline/` | Three fixed recordings, one model, references and manifest | Explicit allowlist |
 | `tests/fixtures/release/` | One scene, event times and four regression predictions | Explicit allowlist |
-| `docs/`, `skills/` | Guides, shared agent skills and four published figures | Tracked |
+| `docs/`, `.agents/skills/` | Guides, shared agent skills and four published figures | Tracked |
 | `third_party/bam/` | Upstream BAM at a fixed commit | Git submodule |
 | `data/<study>/` | All materials belonging to a local experiment | Ignored in full |
 | `outputs/` | Temporary runs, renders, builds and checks | Ignored in full |

@@ -96,16 +96,16 @@ Newton 与 mjlab 的安装见[可选环境](docs/environments.md)，支持的模
 
 ## Coding agent 使用
 
-在 Codex 或 Claude Code 中打开本仓库，直接描述要完成的任务。仓库提供四个共享 [skills](skills)：
+在 Codex 或 Claude Code 中打开本仓库，直接描述要完成的任务。仓库提供四个共享 [skills](.agents/skills)：
 
 | Skill | 任务 |
 | :--- | :--- |
-| [motorfit-setup](skills/motorfit-setup/SKILL.md) | 安装依赖并跑通离线示例 |
-| [motorfit-record](skills/motorfit-record/SKILL.md) | 配置已安装的电机并采集台架数据 |
-| [motorfit-identify](skills/motorfit-identify/SKILL.md) | 处理记录、拟合候选模型并选型 |
-| [motorfit-validate](skills/motorfit-validate/SKILL.md) | 评估固定模型并运行受支持的物理回放 |
+| [motorfit-setup](.agents/skills/motorfit-setup/SKILL.md) | 安装依赖并跑通离线示例 |
+| [motorfit-record](.agents/skills/motorfit-record/SKILL.md) | 配置已安装的电机并采集台架数据 |
+| [motorfit-identify](.agents/skills/motorfit-identify/SKILL.md) | 处理记录、拟合候选模型并选型 |
+| [motorfit-validate](.agents/skills/motorfit-validate/SKILL.md) | 评估固定模型并运行受支持的物理回放 |
 
-例如：“使用 motorfit-setup 安装 MotorFit，并跑通离线示例。”Codex 通过 `.agents/skills/` 发现技能，Claude Code 使用 `.claude/skills/`；两者均链接到 `skills/` 中的同一份正文，其他 agent 也可直接读取。
+例如：“使用 motorfit-setup 安装 MotorFit，并跑通离线示例。”技能正文直接存放在 `.agents/skills/`，由 Codex 自动发现；Claude Code 通过 `.claude/skills` 相对软链接读取同一份文件，其他 agent 也可直接读取正文目录。
 
 ## 致谢
 

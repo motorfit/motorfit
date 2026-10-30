@@ -9,4 +9,5 @@
 - Enable the commit hook with `git config core.hooksPath .githooks`. Stage named paths, inspect
   `git diff --cached --stat`, and run `python3 scripts/check_repository.py` before committing.
 - Keep the unreleased package version at `0.1.0`. Keep English and Chinese README commands
-  consistent. Shared agent skills live in `skills/`; discovery directories contain relative links.
+  consistent. Shared agent skills live directly in `.agents/skills/`; `.claude/skills` is a relative
+  symlink to that directory. Do not add a root-level `skills/` directory.

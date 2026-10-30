@@ -96,16 +96,16 @@ See the [documentation index](docs/README.md) for all guides and the [repository
 
 ## Coding agents
 
-Open this checkout in Codex or Claude Code and ask for the task you need. The repository includes four shared [skills](skills):
+Open this checkout in Codex or Claude Code and ask for the task you need. The repository includes four shared [skills](.agents/skills):
 
 | Skill | Task |
 | :--- | :--- |
-| [motorfit-setup](skills/motorfit-setup/SKILL.md) | Install dependencies and run the offline example |
-| [motorfit-record](skills/motorfit-record/SKILL.md) | Configure a mounted motor and collect bench data |
-| [motorfit-identify](skills/motorfit-identify/SKILL.md) | Process recordings, fit candidates and select a model |
-| [motorfit-validate](skills/motorfit-validate/SKILL.md) | Evaluate a fixed model and run supported physics replay |
+| [motorfit-setup](.agents/skills/motorfit-setup/SKILL.md) | Install dependencies and run the offline example |
+| [motorfit-record](.agents/skills/motorfit-record/SKILL.md) | Configure a mounted motor and collect bench data |
+| [motorfit-identify](.agents/skills/motorfit-identify/SKILL.md) | Process recordings, fit candidates and select a model |
+| [motorfit-validate](.agents/skills/motorfit-validate/SKILL.md) | Evaluate a fixed model and run supported physics replay |
 
-For example, ask “Use motorfit-setup to install MotorFit and run the offline example.” Codex discovers the skills through `.agents/skills/`; Claude Code uses `.claude/skills/`. Both link to the same instructions in `skills/`, which other agents can read directly.
+For example, ask “Use motorfit-setup to install MotorFit and run the offline example.” The skill sources live in `.agents/skills/`, where Codex discovers them directly. Claude Code reads the same files through the `.claude/skills` relative symlink; other agents can read the source directory directly.
 
 ## Acknowledgements
 

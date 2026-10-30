@@ -21,7 +21,6 @@ SOURCE_SUFFIXES = {
     "scripts": {".py", ".sh"},
     "tests": {".py"},
     "docs": {".md"},
-    "skills": {".md"},
     ".github": {".yml", ".yaml"},
 }
 RECORDS = (
@@ -48,10 +47,8 @@ FIXTURES = {
     ),
 }
 SKILLS = ("motorfit-setup", "motorfit-record", "motorfit-identify", "motorfit-validate")
-LINKS = {
-    ".claude/skills": "../.agents/skills",
-    **{f".agents/skills/{name}": f"../../skills/{name}" for name in SKILLS},
-}
+SKILL_FILES = {f".agents/skills/{name}/SKILL.md" for name in SKILLS}
+LINKS = {".claude/skills": "../.agents/skills"}
 FORBIDDEN_PARTS = {
     "__pycache__",
     ".venv",
@@ -89,7 +86,7 @@ def allowed(path):
         or any(p == ".env" or p.startswith(".env.") for p in parts)
     ):
         return False
-    if path in ROOT_FILES or path in FIXTURES or path in LINKS or path == "third_party/bam":
+    if path in ROOT_FILES | FIXTURES | SKILL_FILES | LINKS.keys() or path == "third_party/bam":
         return True
     return PurePosixPath(path).suffix in SOURCE_SUFFIXES.get(parts[0], set())
 
