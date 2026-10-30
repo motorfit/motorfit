@@ -13,7 +13,8 @@ ROOT_FILES = {
     "README.zh-CN.md",
     "pyproject.toml",
     "uv.lock",
-    ".githooks/pre-commit",
+    "docs/conf.py",
+    "docs/_templates/global-nav.html",
 }
 SOURCE_SUFFIXES = {
     "src": {".py", ".cpp", ".h", ".hpp"},
@@ -64,11 +65,13 @@ FORBIDDEN_PARTS = {
     "wandb",
     "build",
     "dist",
+    ".doctrees",
 }
 FORBIDDEN_PREFIXES = (
     "configs/local/",
     "configs/simulation/release/",
     "docs/images/references/",
+    "docs/_build/",
 )
 FORBIDDEN_FILES = {"docs/images/overview-prompt.md", "docs/images/offline-replay.png"}
 

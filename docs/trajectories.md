@@ -4,7 +4,7 @@ Recording duration is an experiment setting. Choose it to excite the actuator ov
 
 ## Configurable Python acquisition
 
-[`Trajectory`](../src/motor_identification/acquisition/trajectories.py) wraps BAM's built-in trajectories. `duration_s` in the acquisition TOML, or `motorfit record --duration`, selects the duration. Built-in BAM trajectories are rescaled in time; `amplitude` scales their angles. The recording preserves the selected duration, native duration and time scale.
+[`Trajectory`](https://github.com/motorfit/motorfit/blob/main/src/motor_identification/acquisition/trajectories.py) wraps BAM's built-in trajectories. `duration_s` in the acquisition TOML, or `motorfit record --duration`, selects the duration. Built-in BAM trajectories are rescaled in time; `amplitude` scales their angles. The recording preserves the selected duration, native duration and time scale.
 
 The included `bam_6s.toml` example uses 6 seconds. `chirp.toml` uses the 30-second `soccer_sweep` from [soccer-bam](https://github.com/utra-robosoccer/soccer-bam/tree/96fe9a971d02cee33913d1bbb0b6cf37575f43b7), whose formula is `amplitude * sin(sweep_k * t²)`. For this sweep, changing duration changes the observation interval; it does not renormalize `sweep_k`.
 

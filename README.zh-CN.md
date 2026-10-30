@@ -14,7 +14,7 @@
 <p align="center">
   <a href="#快速开始">快速开始</a> ·
   <a href="#支持的电机">支持的电机</a> ·
-  <a href="docs/README.md">文档</a> ·
+  <a href="https://motorfit.github.io/">文档</a> ·
   <a href="README.md">English</a>
 </p>
 
@@ -37,9 +37,8 @@ MotorFit 在 [Rhoban BAM](https://github.com/Rhoban/bam) 基础上补充独立�
 需要 **Python 3.12** 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。先运行仓库自带的离线示例，无需电机或 GPU。
 
 ```bash
-git clone --recurse-submodules git@github.com:han-xudong/motorfit.git
+git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
-git config core.hooksPath .githooks
 uv sync --frozen
 uv run --frozen motorfit demo \
   --dataset examples/offline/manifest.json --output outputs/demo
@@ -92,7 +91,7 @@ Newton 与 mjlab 的安装见[可选环境](docs/environments.md)，支持的模
 - **[复现 RS05 实验](docs/case-studies/rs05.md)** — 111 条记录、三档负载、三个物理仿真后端。Git 包含三条完整示例，全部数据与视频[单独保存](docs/case-studies/rs05.md#what-to-reproduce)。
 - **[扩展 MotorFit](docs/architecture.md)** — 了解驱动、控制器、夹具和数据集接口。
 
-全部指南见[文档索引](docs/README.md)；文件存放与 Git 跟踪规则见[仓库规范](docs/repository.md)。
+全部指南见[文档索引](docs/index.md)；文件存放与 Git 跟踪规则见[仓库规范](docs/repository.md)。
 
 ## Coding agent 使用
 

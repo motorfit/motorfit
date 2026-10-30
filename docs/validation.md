@@ -1,6 +1,6 @@
 # Offline validation
 
-Use [the workflow](workflow.md) to prepare and freeze a new study. The commands below use the separately stored [RS05 study](case-studies/rs05.md#what-to-reproduce). For a fresh checkout, start with the self-contained [offline example](../examples/offline/README.md). `verify` checks the saved dataset manifest; `audit-feedback` and the release-event analysis implement the reference RS05 wire-capture conventions. Other capture formats need their corresponding audit implementation.
+Use [the workflow](workflow.md) to prepare and freeze a new study. The commands below use the separately stored [RS05 study](case-studies/rs05.md#what-to-reproduce). For a fresh checkout, start with the self-contained [offline example](quickstart.md). `verify` checks the saved dataset manifest; `audit-feedback` and the release-event analysis implement the reference RS05 wire-capture conventions. Other capture formats need their corresponding audit implementation.
 
 `uv sync --frozen` installs the Python 3.12 core. None of the following commands opens CAN. Every output directory must be new. The complete-data commands require the data attachment.
 

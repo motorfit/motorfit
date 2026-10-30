@@ -24,12 +24,6 @@ must go to a new path under `data/<study>/` or `outputs/`; never overwrite a fro
 
 ## Before committing
 
-Enable the repository hook once per clone:
-
-```bash
-git config core.hooksPath .githooks
-```
-
 Stage named source paths, then inspect and check the staged tree:
 
 ```bash
@@ -38,15 +32,15 @@ python3 scripts/check_repository.py
 git diff --cached --check
 ```
 
-The hook checks the Git index, including forced additions and previously tracked ignored files.
-GitHub CI repeats that check and runs lint, tests and the offline example from a fresh checkout.
+The checker inspects the Git index, including forced additions and previously tracked ignored files.
+GitHub CI runs it alongside lint, tests and the offline example from a fresh checkout.
 The checker permits source extensions in designated directories and explicitly lists example
 records, regression artifacts and documentation images. It also limits each blob to 5 MiB and
 the source/fixture total to 20 MiB (the BAM submodule has its own history).
 
 Adding a new intentional fixture requires reviewing and updating the allowlist in
 `scripts/check_repository.py` along with its consumer and documentation. Do not expand it for
-ordinary experiment outputs or bypass the hook to upload local archives.
+ordinary experiment outputs or use it to upload local archives.
 
 Adding an ignore rule does not untrack existing files or remove their history. If an experiment
 file was accidentally staged, unstage it and keep the local copy. History cleanup requires a

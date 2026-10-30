@@ -32,6 +32,12 @@ simulation = [
 
 [dependency-groups]
 dev = ["pytest>=8,<10", "ruff>=0.11,<1"]
+docs = [
+  "sphinx>=8.2,<10",
+  "myst-parser>=4,<6",
+  "pydata-sphinx-theme>=0.16,<1",
+  "sphinx-copybutton>=0.5,<0.6",
+]
 
 [tool.uv.sources]
 better-actuator-models = { path = "third_party/bam", editable = true }

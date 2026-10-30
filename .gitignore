@@ -43,3 +43,7 @@ wandb/
 *.tmp
 *.swp
 .DS_Store
+
+# Documentation build products
+/docs/_build/
+.doctrees/

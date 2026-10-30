@@ -14,7 +14,7 @@
 <p align="center">
   <a href="#quickstart">Quickstart</a> ·
   <a href="#supported-motors">Supported motors</a> ·
-  <a href="docs/README.md">Documentation</a> ·
+  <a href="https://motorfit.github.io/">Documentation</a> ·
   <a href="README.zh-CN.md">简体中文</a>
 </p>
 
@@ -37,9 +37,8 @@ MotorFit extends [Rhoban BAM](https://github.com/Rhoban/bam) with native motor d
 Requires **Python 3.12** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Start with the bundled offline example; no motor or GPU is needed.
 
 ```bash
-git clone --recurse-submodules git@github.com:han-xudong/motorfit.git
+git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
-git config core.hooksPath .githooks
 uv sync --frozen
 uv run --frozen motorfit demo \
   --dataset examples/offline/manifest.json --output outputs/demo
@@ -92,7 +91,7 @@ See [optional environments](docs/environments.md) for Newton and mjlab, and [val
 - **[Reproduce the RS05 study](docs/case-studies/rs05.md)** — 111 recordings, three loads and three physics backends. Git includes a three-record example; the full dataset and videos are [stored separately](docs/case-studies/rs05.md#what-to-reproduce).
 - **[Extend MotorFit](docs/architecture.md)** — understand the driver, controller, fixture and dataset interfaces.
 
-See the [documentation index](docs/README.md) for all guides and the [repository policy](docs/repository.md) for file placement and Git tracking.
+See the [documentation index](docs/index.md) for all guides and the [repository policy](docs/repository.md) for file placement and Git tracking.
 
 ## Coding agents
 

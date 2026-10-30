@@ -32,7 +32,7 @@ All three have independent Python implementations and offline end-to-end tests. 
 
 ## Damiao acquisition
 
-Copy [`dm4310_pendulum.toml`](../configs/setups/dm4310_pendulum.toml) in the same directory. Select a profile from [`configs/motors/damiao`](../configs/motors/damiao), then set the actual fixture, supply, CAN address, feedback address and trajectory. The example gains and fixture are placeholders for a measured assembly.
+Copy [`dm4310_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/dm4310_pendulum.toml) in the same directory. Select a profile from [`configs/motors/damiao`](https://github.com/motorfit/motorfit/tree/main/configs/motors/damiao), then set the actual fixture, supply, CAN address, feedback address and trajectory. The example gains and fixture are placeholders for a measured assembly.
 
 ```bash
 uv run --frozen motorfit inspect --setup configs/setups/dm4310_pendulum.toml \

@@ -6,10 +6,10 @@ These native drivers connect the full **read → inspect → software zero → r
 
 | Family | Setup template | Wire input | Setup details |
 |---|---|---|---|
-| MyActuator | [`myactuator_rmd_x_v3_pendulum.toml`](../configs/setups/myactuator_rmd_x_v3_pendulum.toml) | RMD-X V3 A1 current, 0.01 A/count | Set output-axis `torque_constant_nm_per_a` and `current_limit_a` in the motor profile; supplied 1.0 values are placeholders |
-| HighTorque | [`hightorque_ht_can_pendulum.toml`](../configs/setups/hightorque_ht_can_pendulum.toml) | 05/13 pure torque, 0.01 Nm/count | Set the exact feedback CAN ID; default is 1 for motor 1. Some firmware uses standard ID `motor_id << 8` |
-| Hexfellow 07 | [`hexfellow_canopen_v07_pendulum.toml`](../configs/setups/hexfellow_canopen_v07_pendulum.toml) | CANopen mode 4, 6071 permille of device peak torque | Firmware 07 uses Q21 revolutions and uint32 mNm peak torque |
-| Hexfellow 08 | [`hexfellow_canopen_v08_pendulum.toml`](../configs/setups/hexfellow_canopen_v08_pendulum.toml) | CANopen mode 4, 6071 permille of device peak torque | Firmware 08 uses float32 revolutions and float32 Nm peak torque |
+| MyActuator | [`myactuator_rmd_x_v3_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/myactuator_rmd_x_v3_pendulum.toml) | RMD-X V3 A1 current, 0.01 A/count | Set output-axis `torque_constant_nm_per_a` and `current_limit_a` in the motor profile; supplied 1.0 values are placeholders |
+| HighTorque | [`hightorque_ht_can_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/hightorque_ht_can_pendulum.toml) | 05/13 pure torque, 0.01 Nm/count | Set the exact feedback CAN ID; default is 1 for motor 1. Some firmware uses standard ID `motor_id << 8` |
+| Hexfellow 07 | [`hexfellow_canopen_v07_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/hexfellow_canopen_v07_pendulum.toml) | CANopen mode 4, 6071 permille of device peak torque | Firmware 07 uses Q21 revolutions and uint32 mNm peak torque |
+| Hexfellow 08 | [`hexfellow_canopen_v08_pendulum.toml`](https://github.com/motorfit/motorfit/blob/main/configs/setups/hexfellow_canopen_v08_pendulum.toml) | CANopen mode 4, 6071 permille of device peak torque | Firmware 08 uses float32 revolutions and float32 Nm peak torque |
 
 Copy the setup and motor profile for your actual motor; keep relative paths valid. The generic profile names are protocol identifiers, not hardware specifications. Configure the measured fixture, supply, physical angle/speed/torque limits and fixed host gains. Position limits in these profiles refer to the physical angle relative to the saved zero. Kp is Nm/rad and Kd is Nm·s/rad. Start from the 20 Hz low-amplitude acquisition template, then use measured transaction durations to choose a rate. SDO acquisition reads multiple registers sequentially and does not promise synchronized feedback or a 1 kHz loop.
 
