@@ -5,8 +5,9 @@ MotorFit reads these settings from TOML files. The same setup file is used by
 `read`, `inspect`, `zero` and `record`.
 
 You need a supported motor, a rigidly mounted pendulum, measured fixture properties,
-and a Linux machine with a SocketCAN interface. Complete the
-[offline quickstart](../getting-started/quickstart.md) first to check the software.
+and a Linux machine with a SocketCAN interface. Use the
+[Quickstart installation steps](../getting-started/quickstart.md#1-install-motorfit)
+to prepare the software.
 
 ## 1. Create a local configuration
 

@@ -34,38 +34,18 @@ MotorFit extends [Rhoban BAM](https://github.com/Rhoban/bam) with native motor d
 
 ## Quickstart
 
-Requires **Python 3.12** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Start with the bundled offline example; no motor or GPU is needed.
+Install MotorFit with **Python 3.12** and [uv](https://docs.astral.sh/uv/getting-started/installation/). Cloning requires access to the private repository.
 
 ```bash
 git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
-uv run --no-sync motorfit demo \
-  --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
-This checks three complete recordings against a frozen model and writes a comparison plot, metrics and predicted trajectories to `outputs/demo/`. The repository is private; cloning requires access. MotorFit is unreleased at version 0.1.0.
-
-A successful run prints `PASS: 3 complete recordings; frozen references reproduced.`
-Open `outputs/demo/comparison.png` and `metrics.csv` to inspect prediction error.
-The [quickstart](https://motorfit.github.io/main/getting-started/quickstart.html)
-explains each output and the expected values. This command replays a saved model;
-start with the [experiment workflow](https://motorfit.github.io/main/getting-started/workflow.html)
-to collect data and fit your own.
-
-<details>
-<summary><strong>Replay the example in MuJoCo</strong></summary>
-
-```bash
-uv sync --frozen --extra simulation
-uv run --no-sync motorfit replay \
-  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
-  --dt 0.002 --output outputs/mujoco
-```
-
-See [optional environments](https://motorfit.github.io/reference/backends.html) for Newton and mjlab, and [validation](https://motorfit.github.io/guide/validation.html) for supported models and replay settings.
-
-</details>
+Follow the [Quickstart](https://motorfit.github.io/main/getting-started/quickstart.html)
+to configure your bench, record two runs and fit your first motor model.
+The [RS05 case study](https://motorfit.github.io/main/case-studies/rs05.html#reproduce-three-recorded-runs)
+has the bundled recordings, replay commands and results.
 
 ## Supported motors
 

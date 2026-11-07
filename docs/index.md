@@ -22,11 +22,10 @@ currently models a single pendulum joint; it does not automatically calibrate an
 entire robot or edit its XML. See [Parameters](reference/parameters.md) for the
 physical meaning of the fitted values and their connection to simulation.
 
-## Start with a recorded example
+## Quickstart
 
-[Run the quickstart](getting-started/quickstart.md) to reproduce three real RS05
-recordings and inspect their prediction errors. You need Python 3.12, uv and access
-to the source repository. A motor and GPU are unnecessary for this first run.
+[Follow the quickstart](getting-started/quickstart.md) to install MotorFit, record
+motion from your bench and fit your first motor model.
 
 ## Identify your own motor
 
@@ -49,7 +48,8 @@ Follow the guides in order. Each uses the same configuration and study directory
 
 [Supported models](reference/motors.md) lists the shipped profiles.
 [The RS05 study](case-studies/rs05.md) describes the experiment, selected parameters
-and remaining prediction errors.
+and remaining prediction errors. Its [bundled replay](case-studies/rs05.md#reproduce-three-recorded-runs)
+runs on a CPU using three recorded experiments.
 
 The package is **0.1.0, unreleased**. The menu beside the logo selects the handbook
 version. The documentation is public; the source repository currently requires

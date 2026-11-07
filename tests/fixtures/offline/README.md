@@ -1,6 +1,6 @@
 # Offline fixture
 
-This self-contained sample is shared by the [quickstart](../../../docs/getting-started/quickstart.md)
+This self-contained sample is shared by the [RS05 replay example](../../../docs/case-studies/rs05.md#reproduce-three-recorded-runs)
 and `tests/test_offline.py`. It contains one complete recording for each of the
 100/200/500 g loads from the [RS05 study](../../../docs/case-studies/rs05.md):
 

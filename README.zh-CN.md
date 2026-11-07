@@ -34,36 +34,16 @@ MotorFit 在 [Rhoban BAM](https://github.com/Rhoban/bam) 基础上补充独立�
 
 ## 快速开始
 
-需要 **Python 3.12** 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。先运行仓库自带的离线示例，无需电机或 GPU。
+使用 **Python 3.12** 和 [uv](https://docs.astral.sh/uv/getting-started/installation/) 安装 MotorFit。克隆需要私有仓库的访问权限。
 
 ```bash
 git clone --recurse-submodules git@github.com:motorfit/motorfit.git
 cd motorfit
 uv sync --frozen
-uv run --no-sync motorfit demo \
-  --dataset tests/fixtures/offline/manifest.json --output outputs/demo
 ```
 
-示例使用冻结模型检验三条完整记录，将对照图、误差指标和预测轨迹写入 `outputs/demo/`。当前仓库为私有，克隆需要访问权限。MotorFit 尚未发布，版本保持为 0.1.0。
-
-运行成功会输出 `PASS: 3 complete recordings; frozen references reproduced.`。
-打开 `outputs/demo/comparison.png` 和 `metrics.csv` 查看预测误差。
-[快速上手](https://motorfit.github.io/main/getting-started/quickstart.html)解释了各项输出和预期数值。
-这条命令回放已有模型；要采集数据并辨识自己的电机，请从[实验流程](https://motorfit.github.io/main/getting-started/workflow.html)开始。
-
-<details>
-<summary><strong>在 MuJoCo 中回放示例</strong></summary>
-
-```bash
-uv sync --frozen --extra simulation
-uv run --no-sync motorfit replay \
-  --dataset tests/fixtures/offline/manifest.json --engine mujoco \
-  --dt 0.002 --output outputs/mujoco
-```
-
-Newton 与 mjlab 的安装见[可选环境](https://motorfit.github.io/reference/backends.html)，支持的模型和回放设置见[验证指南](https://motorfit.github.io/guide/validation.html)。
-
-</details>
+按[快速上手](https://motorfit.github.io/main/getting-started/quickstart.html)配置台架、采集两次运动并拟合第一个电机模型。
+随附的录制数据、回放命令和结果见 [RS05 案例](https://motorfit.github.io/main/case-studies/rs05.html#reproduce-three-recorded-runs)。
 
 ## 支持的电机
 
