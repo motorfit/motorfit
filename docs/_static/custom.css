@@ -1,3 +1,8 @@
+.bd-header .navbar-brand .logo__image {
+  max-height: 2.25rem;
+  border-radius: 0.375rem;
+}
+
 /* The empty navbar_center removes PyData's automatic spacing before the tools. */
 @media (min-width: 960px) {
   .bd-header .navbar-header-items__end {

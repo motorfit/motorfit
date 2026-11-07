@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">MotorFit avatar, black symbol on white</title>
+  <desc id="desc">Three forward-leaning strokes with curved shoulders; the third shares its stem with an F. No wordmark.</desc>
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  <g fill="#000000" transform="translate(40.96 170.553642) scale(0.712053)">
+    <path d="M 0 240 L 123.026217 34.956306 A 72 72 0 0 1 184.765707 0 H 227.965707 L 83.965707 240 Z"/>
+    <path d="M 111.954276 240 L 234.980493 34.956306 A 72 72 0 0 1 296.719984 0 H 339.919984 L 195.919984 240 Z"/>
+    <path d="M 223.908553 240 L 341.691324 43.695382 A 90 90 0 0 1 418.865687 0 H 604 L 560.8 72 H 418.865687 A 18 18 0 0 0 403.430814 80.739076 L 384.67426 112 H 536.8 L 493.6 184 H 341.47426 L 307.87426 240 Z"/>
+  </g>
+</svg>
